@@ -16,4 +16,19 @@ public class GameManager : MonoBehaviour {
         public static float jump;
     }
 
+    // Contains all data the game will rely on other than controller input 
+    // data and provides the functionality to manipulate these values in 
+    // various ways
+    public static class DataHandler {
+        static float orbCount;
+
+        public static void incrementOrbCount() {
+            orbCount++;
+            print("orbcount = " + orbCount);
+        }
+
+        public static void zeroOrbCount() {
+            orbCount = 0;
+        }
+    }
 }
