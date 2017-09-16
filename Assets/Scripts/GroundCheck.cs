@@ -16,6 +16,14 @@ public class GroundCheck : MonoBehaviour {
             grounded = true;
         }
     }
+    
+    // Set grounded to true when a collider with Ground tag is inside
+    // this gameobjects collider
+    void OnTriggerStay2D(Collider2D other) {
+        if (other.CompareTag("Ground")) {
+            grounded = true;
+        }
+    }
 
     // Set grounded to false when a collider with Ground tag is exiting
     // this gameobjects collider
