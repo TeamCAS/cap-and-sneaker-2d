@@ -2,24 +2,54 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
-{
+public class GameManager : MonoBehaviour {
+
+    // These values are only used for viewing in editor
+    public bool controlsEnabled;
+    public float horizontal, jump;
 
     void FixedUpdate() {
-        InputHandler.horizontal = Input.GetAxis("Horizontal");
-        InputHandler.jump = Input.GetAxis("Jump");
+        InputHandler.setHorizontal(Input.GetAxis("Horizontal"));
+        InputHandler.setJump(Input.GetAxis("Jump"));
 
-        if (DataHandler.isPlayerAlive()) {
-            StateHandler.setState(StateHandler.GameState.LOAD_START);
-        }
-    }
+        //StateHandler.updateState();
+        
+        // Update values so they can be seen in editor
+        controlsEnabled = InputHandler.isControlsEnabled();
+        horizontal = InputHandler.getHorizontal();
+        jump = InputHandler.getJump();
+}
 
     // Holds onto the input variable results that other objects can use
     // each game loop
     public static class InputHandler {
-        public static float horizontal;
-        public static float jump;
+        static float horizontal;
+        static float jump;
+        static bool controlsEnabled = true;
+
+        public static float getHorizontal() {
+            if (controlsEnabled) return horizontal;
+            return 0;
+        }
+
+        public static float getJump() {
+            if (controlsEnabled) return jump;
+            return 0;
+        }
+
+        public static bool jumpPressed() { return jump == 1; }
+
+        public static void setHorizontal(float h) { horizontal = h; }
+        public static void setJump(float j) { jump = j; }
+
+        public static void enableControls() { controlsEnabled = true; }
+        public static void disableControls() { controlsEnabled = false; }
+        public static bool isControlsEnabled() { return controlsEnabled; }
     }
+
+
+
+
 
     // Contains all data the game will rely on other than controller input 
     // data and provides the functionality to manipulate these values in 
@@ -40,15 +70,19 @@ public class GameManager : MonoBehaviour
         }
 
         // Sets the playerAlive to false
-        public static void playerDied() {
-            playerAlive = false;
-        }
+        public static void SetPlayerDead() { playerAlive = false; }
+        // Sets the playerAlive to false
+        public static void SetPlayerAlive() { playerAlive = true; }
 
         public static bool isPlayerAlive() {
             return playerAlive;
         }
 
     }
+
+
+
+
 
     // Keeps track of state the game is currently in and which state 
     // it’s switching from/to. State will change based on the 
@@ -62,33 +96,93 @@ public class GameManager : MonoBehaviour
         }
 
         // The current state the whole game is in
-        private static GameState current;
+        static GameState current;
+
+        public static GameState getCurrent() { return current; }
 
         // Sets the state of the game
-        public static void setState(GameState state) {
-            current = state;
-        }
+        public static void setState(GameState state) { current = state; }
 
         // Runs every update to check whether the state of the game 
         // should change based on requested state and values. 
         public static void updateState() {
 
+            if (!DataHandler.isPlayerAlive() && current == GameState.GAMEPLAY) {
+                current = GameState.LOAD_START;
+            }
+            
             switch (current) {
                 case GameState.LOAD_START: {
                         //TODO Disable player controls
-
+                        InputHandler.disableControls();
                         //TODO start loading animation if not running
 
-                        //TODO If animation is done, switch to next 
-                        //     level and switch to that state
+                        //TODO If animation is done, switch to LOADING state
+                        current = GameState.LOADING;
+                        break;
+                    }
+                case GameState.LOADING: {
+                        //TODO Show loading screen if not running
+
+                        //TODO Perform loading tasks
+                        LevelHandler.loadLevel();
+
+                        //TODO When loading is complete, switch to LOAD_END state
+                        current = GameState.LOAD_END;
+                        break;
+                    }
+                case GameState.LOAD_END: {
+
+                        //TODO Start load end animation if not running
+
+                        //TODO If animation is done, switch to proper state and
+                        //     enable player controls
+                        current = GameState.GAMEPLAY;
+                        InputHandler.enableControls();
                         break;
                     }
                 default: {
-
+                        print("ERROR: StateHandler reached default case " + 
+                              "which should not be possible!");
                         break;
                     }   
             }
 
         }
+    }
+
+
+    public static class LevelHandler {
+
+        public enum Level {
+            TEST,
+            STAGE_ONE
+        }
+
+        private static Level current = Level.TEST;
+
+        private static void loadTestStage() {
+            // Return if the level is already loaded
+            if (current == Level.TEST) return;
+
+        }
+
+        private static void loadStageOne() {
+            // Return if the level is already loaded
+            if (current == Level.STAGE_ONE) return;
+
+        }
+
+        public static void loadLevel() {
+            switch (current) {
+                case Level.TEST: loadTestStage();
+                    break;
+                case Level.STAGE_ONE: loadStageOne();
+                    break;
+                default:
+                    break;
+            }
+        }
+
     }
 }
