@@ -51,3 +51,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6aff68828169ef7479008d81f085046e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  controlsEnabled: 0
+  horizontal: 0
+  jump: 0
