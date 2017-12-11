@@ -318,7 +318,7 @@ public class PlayerController : MonoBehaviour {
         bool jumpPressed = GameManager.InputHandler.jumpPressed();
         bool isVelocityDown = rbody.velocity.y < 0;
         bool playerFalling = !groundCheck.isGrounded();
-        playerFalling = playerFalling && isVelocityDown;
+        //playerFalling = playerFalling && isVelocityDown;
 
         if (playerFalling && jumpPressed) {
             parachuteOpen = true;
