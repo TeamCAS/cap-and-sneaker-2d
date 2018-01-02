@@ -26,6 +26,7 @@ public class GameManager : MonoBehaviour {
         static float horizontal;
         static float jump;
         static bool controlsEnabled = true;
+        static bool[] jumpLog = new bool[2];
 
         public static float getHorizontal() {
             if (controlsEnabled) return horizontal;
@@ -40,7 +41,11 @@ public class GameManager : MonoBehaviour {
         public static bool jumpPressed() { return jump == 1; }
 
         public static void setHorizontal(float h) { horizontal = h; }
-        public static void setJump(float j) { jump = j; }
+        public static void setJump(float j) {
+            jump = j;
+            jumpLog[0] = jumpLog[1];
+            jumpLog[1] = jumpPressed();
+        }
 
         public static void enableControls() { controlsEnabled = true; }
         public static void disableControls() { controlsEnabled = false; }
