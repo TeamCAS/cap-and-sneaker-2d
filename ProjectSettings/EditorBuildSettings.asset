@@ -14,6 +14,9 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/TestThree.unity
     guid: 3c1faa4acb223ae4da72850f0ecccdfe
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/WindChannelTest.unity
     guid: 0093a3cf7f7db8749b80d131c2254b15
+  - enabled: 1
+    path: Assets/Scenes/ScoopTest.unity
+    guid: 61e93781c46e66e4aa539c31578b6b4b

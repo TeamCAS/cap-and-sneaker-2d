@@ -14,13 +14,17 @@ public class PlayerController : MonoBehaviour {
     public float stickyScale = 30;
     public float stickyDistance = 3;
     public float gravityScale= 5;
+    public float fallingRotationSpeed = 0.1f;
 
     Vector3 spawnPoint;
     Rigidbody2D rbody;
     GroundCheck groundCheck;
     bool canJump = false;
     bool parachuteOpen;
-    
+    bool playerSitting = false;
+
+    float rotationStartTime = -1;
+
     GameObject hat;
     CircleCollider2D plyCollider;
     
@@ -40,15 +44,28 @@ public class PlayerController : MonoBehaviour {
     void FixedUpdate() {
         
         // Reset the players rotation when they are in freefall
-        if (!groundCheck.isGrounded())
-            transform.eulerAngles = Vector2.zero;
+        if (!groundCheck.isGrounded()) {
+            InterpolateRotation();
+        }
+        else {
+            rotationStartTime = -1;
+        }
 
-        StickyRun();
-        MoveHorizontal();
-        Jump();
-        ToggleParachute();
+        if (!playerSitting) {
+            StickyRun();
+            MoveHorizontal();
+            Jump();
+            ToggleParachute();
+        }
     }
 
+    void InterpolateRotation() {
+        rotationStartTime = rotationStartTime == -1 ? Time.time : rotationStartTime;
+        Quaternion current = transform.rotation;
+        Quaternion dest = Quaternion.Euler(0, 0, 0);
+        float t = (Time.time - rotationStartTime) * fallingRotationSpeed;
+        transform.rotation = Quaternion.Slerp(current, dest, t);
+    }
 
     Vector2 GetSurfaceSlope(ArrayList list) {
         
@@ -188,6 +205,8 @@ public class PlayerController : MonoBehaviour {
         
         
         Vector3 surfaceSlope = GetSurfaceSlope(pointsHit);
+        
+
         // determine the most number of hits from any quadrant
         int max = 0;
         max = (q1 > max) ? q1 : max;
@@ -245,11 +264,8 @@ public class PlayerController : MonoBehaviour {
             || key.CompareTo("124") == 0
             || key.CompareTo("123") == 0) 
         {
-            // is the surface is almost perfectly horizontal, they are on the roof and 
-            // rotate the player accordingly
+            // is the surface is almost perfectly horizontal, they are on the roof
             if (surfaceSlope.x >= 0.975f) {
-                transform.eulerAngles = new Vector3();
-                transform.Rotate(new Vector3(0, 0, 180));
                 upsideDown = true;
             }
             // Otherwise, use the slope as if it were mirrored across the origin
@@ -258,19 +274,23 @@ public class PlayerController : MonoBehaviour {
             }
         }
 
-        // Only apply when not completely upside down, otherwise Unity resets the
-        // transforms up vector, this will also use the surface slope as is when none
-        // of the cases above applu i.e. the ground is below the player
-        if (!upsideDown) {
-            transform.right = surfaceSlope;
-        }
-
         // Determine the gravity vector to use when the player is running fast enough
         Vector2 runGravity = new Vector2(0, -9.8f * stickyScale);
         float playerSpeed = rbody.velocity.magnitude;
+
         // Apply sticky gravity if the player is traveling fast enough and they 
         // are on the ground
         if (playerSpeed > stickyStartSpeed && groundCheck.isGrounded()) {
+            // Only apply when not completely upside down, otherwise Unity resets the
+            // transforms up vector, this will also use the surface slope as is when none
+            // of the cases above apply i.e. the ground is below the player
+            if (!upsideDown) {
+                transform.right = surfaceSlope;
+            }
+            else {
+                transform.eulerAngles = new Vector3();
+                transform.Rotate(new Vector3(0, 0, 180));
+            }
             rbody.AddRelativeForce(runGravity);
         } else {
             rbody.AddForce(new Vector2(0, -9.8f * gravityScale));
@@ -323,7 +343,7 @@ public class PlayerController : MonoBehaviour {
         if (playerFalling && jumpPressed) {
             parachuteOpen = true;
             rbody.AddRelativeForce(new Vector3(0, 9.8f * parachuteDescentSpeed));
-            rbody.transform.eulerAngles = new Vector3();
+            //rbody.transform.eulerAngles = new Vector3();
         } else {
             parachuteOpen = false;
         }
@@ -340,4 +360,9 @@ public class PlayerController : MonoBehaviour {
     void Respawn() {
         transform.position.Set(spawnPoint.x, spawnPoint.y, spawnPoint.z);
     }
+
+    public void SetSitting(bool state) {
+        playerSitting = state;
+    }
+
 }
