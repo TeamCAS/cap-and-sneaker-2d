@@ -27,7 +27,9 @@ public class PlayerController : MonoBehaviour {
 
     GameObject hat;
     CircleCollider2D plyCollider;
+    CapController capCtrl;
     
+
 	// Use this for initialization
 	void Start () {
         rbody = gameObject.GetComponent<Rigidbody2D>();
@@ -37,8 +39,8 @@ public class PlayerController : MonoBehaviour {
                                  transform.position.z);
 
         hat = GameObject.Find("Hat");
-
         plyCollider = GameObject.Find("Collider").GetComponent<CircleCollider2D>();
+        capCtrl = gameObject.GetComponentInChildren<CapController>();
     }
 
     void FixedUpdate() {
@@ -338,12 +340,15 @@ public class PlayerController : MonoBehaviour {
         bool jumpPressed = GameManager.InputHandler.jumpPressed();
         bool isVelocityDown = rbody.velocity.y < 0;
         bool playerFalling = !groundCheck.isGrounded();
+        bool insideWindChannel = capCtrl.isInsideWind();
         //playerFalling = playerFalling && isVelocityDown;
 
-        if (playerFalling && jumpPressed) {
-            parachuteOpen = true;
-            rbody.AddRelativeForce(new Vector3(0, 9.8f * parachuteDescentSpeed));
-            //rbody.transform.eulerAngles = new Vector3();
+        if (playerFalling 
+            && jumpPressed
+            && (isVelocityDown || insideWindChannel)
+            ) {
+                parachuteOpen = true;
+                rbody.AddRelativeForce(new Vector3(0, 9.8f * parachuteDescentSpeed));
         } else {
             parachuteOpen = false;
         }
@@ -365,4 +370,5 @@ public class PlayerController : MonoBehaviour {
         playerSitting = state;
     }
 
+    public bool isParachuteOpen() { return parachuteOpen; }
 }

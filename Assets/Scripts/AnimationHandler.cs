@@ -18,6 +18,7 @@ public class AnimationHandler : MonoBehaviour {
 	void FixedUpdate () {
         float speed = playerBody.velocity.magnitude / playerCtrl.maxRunSpeed;
         animator.SetFloat("Velocity", speed);
+        animator.SetBool("ParachuteOpen", playerCtrl.isParachuteOpen());
 	}
     private void Update() {
         ScaleFlip();
