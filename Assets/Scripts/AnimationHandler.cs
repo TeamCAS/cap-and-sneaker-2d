@@ -19,7 +19,21 @@ public class AnimationHandler : MonoBehaviour {
         float speed = playerBody.velocity.magnitude / playerCtrl.maxRunSpeed;
         animator.SetFloat("Velocity", speed);
         animator.SetBool("ParachuteOpen", playerCtrl.isParachuteOpen());
-	}
+
+        float verticalVelocity = playerBody.velocity.y;
+        verticalVelocity = verticalVelocity < 0 ? -1 : verticalVelocity;
+        verticalVelocity = verticalVelocity > 0 ? 1 : verticalVelocity;
+
+        if (!playerCtrl.isGrounded() && playerBody.velocity.y > 0) {
+            animator.SetBool("Jumping", true);
+            animator.SetFloat("VerticalVelocity", verticalVelocity);
+        }
+        else if (!playerCtrl.isGrounded() && playerBody.velocity.y < 0) {
+            animator.SetBool("Jumping", true);
+            animator.SetFloat("VerticalVelocity", verticalVelocity);
+        }
+        animator.SetBool("Grounded", playerCtrl.isGrounded());
+    }
     private void Update() {
         ScaleFlip();
     }

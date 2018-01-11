@@ -352,15 +352,8 @@ public class PlayerController : MonoBehaviour {
         } else {
             parachuteOpen = false;
         }
-
-        showParachute(parachuteOpen);
     }
-
-    // This will show the parachute when falling, animations should be 
-    // setup and handled here. Temporary sprite for now.
-    void showParachute(bool isShowing) {
-        hat.SetActive(isShowing);
-    }
+    
 
     void Respawn() {
         transform.position.Set(spawnPoint.x, spawnPoint.y, spawnPoint.z);
@@ -371,4 +364,6 @@ public class PlayerController : MonoBehaviour {
     }
 
     public bool isParachuteOpen() { return parachuteOpen; }
+
+    public bool isGrounded() { return groundCheck.isGrounded(); }
 }
