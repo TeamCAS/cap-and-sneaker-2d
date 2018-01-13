@@ -6,45 +6,48 @@ public class AnimationHandler : MonoBehaviour {
 
     Animator animator;
     PlayerController playerCtrl;
-    Rigidbody2D playerBody;
 	
 	void Start () {
         playerCtrl = gameObject.GetComponentInParent<PlayerController>();
-        playerBody = gameObject.GetComponentInParent<Rigidbody2D>();
         animator = gameObject.GetComponentInParent<Animator>();
     }
-	
-	// Update is called once per frame
-	void FixedUpdate () {
-        float speed = playerBody.velocity.magnitude / playerCtrl.maxRunSpeed;
-        animator.SetFloat("Velocity", speed);
-        animator.SetBool("ParachuteOpen", playerCtrl.isParachuteOpen());
 
-        float verticalVelocity = playerBody.velocity.y;
+    public void UpdateParamaters(bool grounded, Vector2 velocity, bool parachuteOpen) {
+
+        float speed = velocity.magnitude / playerCtrl.maxRunSpeed;
+        animator.SetFloat("Velocity", speed);
+        animator.SetBool("ParachuteOpen", parachuteOpen);
+
+
+        float verticalVelocity = velocity.y;
         verticalVelocity = verticalVelocity < 0 ? -1 : verticalVelocity;
         verticalVelocity = verticalVelocity > 0 ? 1 : verticalVelocity;
+        
+        animator.SetFloat("VerticalVelocity", verticalVelocity);
+        animator.SetBool("Grounded", grounded);
 
-        if (!playerCtrl.isGrounded() && playerBody.velocity.y > 0) {
-            animator.SetBool("Jumping", true);
-            animator.SetFloat("VerticalVelocity", verticalVelocity);
-        }
-        else if (!playerCtrl.isGrounded() && playerBody.velocity.y < 0) {
-            animator.SetBool("Jumping", true);
-            animator.SetFloat("VerticalVelocity", verticalVelocity);
-        }
-        animator.SetBool("Grounded", playerCtrl.isGrounded());
-    }
-    private void Update() {
-        ScaleFlip();
+        ScaleFlip(velocity, playerCtrl.transform.up);
     }
 
-    void ScaleFlip () {
+    void ScaleFlip (Vector2 velocity, Vector2 up) {
         float xScale = transform.localScale.x;
-        if (playerBody.velocity.x < -0.1) {
-            xScale = Mathf.Abs(xScale) * -1;
+        // player traveling left
+        if (velocity.x < -0.1) {
+            if (up.y >= 0) {
+                xScale = Mathf.Abs(xScale) * -1;
+            }
+            else if (up.y < 0) {
+                xScale = Mathf.Abs(xScale);
+            }
         }
-        else if (playerBody.velocity.x > 0.1) {
-            xScale = Mathf.Abs(xScale);
+        // Player traveling right
+        else if (velocity.x > 0.1) {
+            if (up.y >= 0) {
+                xScale = Mathf.Abs(xScale);
+            }
+            else if (up.y < 0) {
+                xScale = Mathf.Abs(xScale) * -1;
+            }
         }
         transform.localScale = new Vector3(
             xScale, 

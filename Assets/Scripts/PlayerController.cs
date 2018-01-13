@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour {
 
+    public float speed;
+
     public float runMultiplier = 200;
     public float maxRunSpeed = 40;
     public float jumpStrength = 1000;
@@ -15,6 +17,9 @@ public class PlayerController : MonoBehaviour {
     public float stickyDistance = 3;
     public float gravityScale= 5;
     public float fallingRotationSpeed = 0.1f;
+
+    public float playerWidth = 1;
+    public float playerHeight = 2.5f;
 
     Vector3 spawnPoint;
     Rigidbody2D rbody;
@@ -28,33 +33,63 @@ public class PlayerController : MonoBehaviour {
     GameObject hat;
     CircleCollider2D plyCollider;
     CapController capCtrl;
-    
+    Vector3 prevPosition;
+
+    GameObject leftGroundCheck;
+    GameObject rightGroundCheck;
+    GameObject centerGroundCheck;
+    public float groundCheckDistance = 1;
+    float floorMode = -1;
+
+    AnimationHandler animations;
+    bool grounded;
+
+    Vector3 prevCheckPos;
+    float gspd;
+
+    Vector3 cloneVector3(Vector3 orig) {
+        return new Vector3(orig.x, orig.y, orig.z);
+    }
 
 	// Use this for initialization
 	void Start () {
         rbody = gameObject.GetComponent<Rigidbody2D>();
         groundCheck = gameObject.GetComponentInChildren<GroundCheck>();
-        spawnPoint = new Vector3(transform.position.x, 
-                                 transform.position.y, 
-                                 transform.position.z);
+        spawnPoint = cloneVector3(transform.position);
 
         hat = GameObject.Find("Hat");
-        plyCollider = GameObject.Find("Collider").GetComponent<CircleCollider2D>();
+        //plyCollider = GameObject.Find("Collider").GetComponent<CircleCollider2D>();
         capCtrl = gameObject.GetComponentInChildren<CapController>();
+        leftGroundCheck = GameObject.Find("PlayerLeftGroundCheck");
+        rightGroundCheck = GameObject.Find("PlayerRightGroundCheck");
+        centerGroundCheck = GameObject.Find("PlayerCenterGroundCheck");
+
+        prevPosition = cloneVector3(transform.position);
+        animations = gameObject.GetComponentInChildren<AnimationHandler>();
+    }
+
+    void Update() {
+        grounded = groundCheck.isGrounded();
+        animations.UpdateParamaters(grounded, rbody.velocity, parachuteOpen);
+        Reposition();
     }
 
     void FixedUpdate() {
+        speed = rbody.velocity.magnitude;
+        grounded = groundCheck.isGrounded();
+
+        Reposition();
         
         // Reset the players rotation when they are in freefall
         if (!groundCheck.isGrounded()) {
-            InterpolateRotation();
+         //   InterpolateRotation();
         }
         else {
             rotationStartTime = -1;
         }
 
         if (!playerSitting) {
-            StickyRun();
+            //StickyRun();
             MoveHorizontal();
             Jump();
             ToggleParachute();
@@ -69,253 +104,120 @@ public class PlayerController : MonoBehaviour {
         transform.rotation = Quaternion.Slerp(current, dest, t);
     }
 
-    Vector2 GetSurfaceSlope(ArrayList list) {
-        
-        if (list.Count == 0) return Vector2.zero;
+    void UndoSolidPassThrough() {
+        // shoot ray cast from old to new
+        Vector3 dir = transform.position - prevPosition;
+        float maxDist = dir.magnitude;
+        int layerMask = 1 << LayerMask.NameToLayer("Solid");
+        RaycastHit2D hit = Physics2D.Raycast(
+            prevPosition, 
+            dir, 
+            maxDist, 
+            layerMask,
+            -Mathf.Infinity,
+            Mathf.Infinity);
 
-        ArrayList slopes = new ArrayList();
-        for (int i = 0; i < list.Count - 1; i++) {
-            for (int j = i + 1; j < list.Count; j++) {
-                Vector2 p1 = (Vector2)list[i];
-                Vector2 p2 = (Vector2)list[j];
-                float x = p1.x - p2.x;
-                float y = p1.y - p2.y;
-
-                if (x < 0) {
-                    x *= -1;
-                    y *= -1;
-                }
-
-                Vector2 slope = new Vector2(x, y);
-                slopes.Add(slope);
-            }
+        // check for collisions
+        if (hit.collider != null) {
+            print("WARNING: Player passed through solid! @ " + hit.collider.gameObject.name);
+            Debug.Break();
         }
 
-        Vector2 avg = new Vector2();
-        foreach(Vector2 v in slopes) {
-            avg += v;
-        }
-        avg /= slopes.Count;
-        
-        /*
-        Vector2 normal = new Vector2(-avg.y, avg.x);
+        // reposition to collision if exist
+
+        // save position for repositioning in next loop
+        prevPosition = cloneVector3(transform.position);
+    }
+
+    void Reposition() {
+        //UndoSolidPassThrough();
+
+        RaycastHit2D centerHit = Physics2D.Raycast(
+            transform.position,
+            transform.up * -1,
+            groundCheckDistance,
+            1 << LayerMask.NameToLayer("Solid"));
+
+
+        // DEBUGGING
         Debug.DrawLine(
-                Vector2.zero,
-                normal,
-                Color.cyan,
-                1,
-                false);
-        */
+            prevCheckPos,
+            centerGroundCheck.transform.position,
+            Color.magenta,
+            5,
+            false);
 
-        return avg.normalized;
-    }
-
-    /* Uses a Unity GameObject and raycast to find the nearby ground and 
-     * rotate the player to be perpendicular to it
-     */
-    void StickyRun() {
-
-        Vector2 n = new Vector2(0, 1);
-        Vector2 ne = new Vector2(1,1);
-        Vector2 e = new Vector2(1,0);
-        Vector2 se = new Vector2(1,-1);
-        Vector2 s = new Vector2(0,-1);
-        Vector2 sw = new Vector2(-1,-1);
-        Vector2 w = new Vector2(-1,0);
-        Vector2 nw = new Vector2(-1,1);
-        ArrayList pointsHit = new ArrayList();
-        Vector3 src = plyCollider.transform.position;
-        float maxDist = plyCollider.radius * stickyDistance;
-        int layerMask = 1 << 8; // Only hit ground colliders
-        int q1 = 0, // quadrant 1
-            q2 = 0, // quadrant 2
-            q3 = 0, // quadrant 3
-            q4 = 0; // quadrant 4
-
-
-        Vector3 dir = n; // The direction to fire the raycast
-        RaycastHit2D hit = Physics2D.Raycast(src, dir, maxDist, layerMask);
-
-        // Only collect the information from raycast that hit another collider
-
-        if (hit.collider != null) {
-            pointsHit.Add(hit.point);
-            q1++;
-            q2++;
-            Debug.DrawLine(src, hit.point, Color.red, 0, false);
-        }
-
-        dir = ne;
-        hit = Physics2D.Raycast(src, dir, maxDist, layerMask);
-        if (hit.collider != null) {
-            pointsHit.Add(hit.point);
-            q1++;
-            Debug.DrawLine(src, hit.point, Color.red, 0, false);
-        }
-
-        dir = e;
-        hit = Physics2D.Raycast(src, dir, maxDist, layerMask);
-        if (hit.collider != null) {
-            pointsHit.Add(hit.point);
-            q1++;
-            q4++;
-            Debug.DrawLine(src, hit.point, Color.red, 0, false);
-        }
-
-        dir = se;
-        hit = Physics2D.Raycast(src, dir, maxDist, layerMask);
-        if (hit.collider != null) {
-            pointsHit.Add(hit.point);
-            q4++;
-            Debug.DrawLine(src, hit.point, Color.red, 0, false);
-        }
-
-        dir = s;
-        hit = Physics2D.Raycast(src, dir, maxDist, layerMask);
-        if (hit.collider != null) {
-            pointsHit.Add(hit.point);
-            q3++;
-            q4++;
-            Debug.DrawLine(src, hit.point, Color.red, 0, false);
-        }
-
-        dir = sw;
-        hit = Physics2D.Raycast(src, dir, maxDist, layerMask);
-        if (hit.collider != null) {
-            pointsHit.Add(hit.point);
-            q3++;
-            Debug.DrawLine(src, hit.point, Color.red, 0, false);
-        }
-
-        dir = w;
-        hit = Physics2D.Raycast(src, dir, maxDist, layerMask);
-        if (hit.collider != null) {
-            pointsHit.Add(hit.point);
-            q2++;
-            q3++;
-            Debug.DrawLine(src, hit.point, Color.red, 0, false);
-        }
-
-        dir = nw;
-        hit = Physics2D.Raycast(src, dir, maxDist, layerMask);
-        if (hit.collider != null) {
-            pointsHit.Add(hit.point);
-            q2++;
-            Debug.DrawLine(src, hit.point, Color.red, 0, false);
-        }
-
-        
-        
-        Vector3 surfaceSlope = GetSurfaceSlope(pointsHit);
-        
-
-        // determine the most number of hits from any quadrant
-        int max = 0;
-        max = (q1 > max) ? q1 : max;
-        max = (q2 > max) ? q2 : max;
-        max = (q3 > max) ? q3 : max;
-        max = (q4 > max) ? q4 : max;
-        // Create a key that signifies the quardants involved with the most hits
-        string key = "";
-        key += (q1 == max) ? "1" : "";
-        key += (q2 == max) ? "2" : "";
-        key += (q3 == max) ? "3" : "";
-        key += (q4 == max) ? "4" : "";
+        if (centerHit.collider != null) {
+            float angle = Vector3.Angle(centerHit.normal, Vector3.up);
+            transform.rotation = new Quaternion();
             
-        /*
-        if (key.CompareTo("3") == 0
-            || key.CompareTo("34") == 0
-            || key.CompareTo("4") == 0
-            || key.CompareTo("234") == 0
-            || key.CompareTo("134") == 0) {
-            surfaceSlope *= 1;
-        }
-        */
-        
-        bool negativeSlope = surfaceSlope.y < 0;
-        bool upsideDown = false;
-        // Only work with a certain number of decimal places to avoid rounding errors
-        string xTrue = surfaceSlope.x.ToString("n2");
-
-        // Most hits resided in quadrant 1 and 4
-        if (key.CompareTo("14") == 0) {
-            // The ground is a vertical wall on right of player
-            if (xTrue.CompareTo("0.00") == 0) {
-                surfaceSlope = new Vector3(0, 1, 0);
+            if (centerHit.normal.x > 0) {
+                transform.Rotate(new Vector3(0, 0, 360 - angle));
+            } else {
+                transform.Rotate(new Vector3(0, 0, angle));
             }
-            // The ground is leading to a roof and player is below the ground i.e. --> \
-            else if (negativeSlope) {
-                surfaceSlope *= -1;
-            }
-        }
-        // Most hits reside in quadrants 2 and 3
-        else if (key.CompareTo("23") == 0) {
-            // The ground is a vertical wall left of player
-            if (xTrue.CompareTo("0.00") == 0) {
-                surfaceSlope = new Vector3(0, -1, 0);
-            }
-            // The ground is leading to a roof and player is below the ground i.e. / <--
-            else if ( ! negativeSlope ) {
-                surfaceSlope *= -1;
-            }
-        }
-        // The player is essentially upside down
-        else if (key.CompareTo("1") == 0
-            || key.CompareTo("12") == 0
-            || key.CompareTo("2") == 0
-            || key.CompareTo("124") == 0
-            || key.CompareTo("123") == 0) 
-        {
-            // is the surface is almost perfectly horizontal, they are on the roof
-            if (surfaceSlope.x >= 0.975f) {
-                upsideDown = true;
-            }
-            // Otherwise, use the slope as if it were mirrored across the origin
-            else {
-                surfaceSlope *= -1;
-            }
+            Vector3 posDifference = (Vector3)centerHit.point - centerGroundCheck.transform.position;
+            transform.position += posDifference;
         }
 
-        // Determine the gravity vector to use when the player is running fast enough
-        Vector2 runGravity = new Vector2(0, -9.8f * stickyScale);
-        float playerSpeed = rbody.velocity.magnitude;
+        Debug.DrawLine(
+            rbody.transform.position,
+            rbody.transform.position + (Vector3)rbody.velocity.normalized,
+            Color.blue,
+            5,
+            false);
 
-        // Apply sticky gravity if the player is traveling fast enough and they 
-        // are on the ground
-        if (playerSpeed > stickyStartSpeed && groundCheck.isGrounded()) {
-            // Only apply when not completely upside down, otherwise Unity resets the
-            // transforms up vector, this will also use the surface slope as is when none
-            // of the cases above apply i.e. the ground is below the player
-            if (!upsideDown) {
-                transform.right = surfaceSlope;
-            }
-            else {
-                transform.eulerAngles = new Vector3();
-                transform.Rotate(new Vector3(0, 0, 180));
-            }
-            rbody.AddRelativeForce(runGravity);
-        } else {
-            rbody.AddForce(new Vector2(0, -9.8f * gravityScale));
+        Vector3 surfaceSlope = rightGroundCheck.transform.position;
+        surfaceSlope -= leftGroundCheck.transform.position;
+        surfaceSlope.Normalize();
+
+        float rightVelAngle = Vector2.Angle(surfaceSlope, rbody.velocity);
+        if (rightVelAngle < 90) {
+            rbody.velocity = surfaceSlope * rbody.velocity.magnitude;
         }
+        else if (rightVelAngle > 90) {
+            rbody.velocity = surfaceSlope * -rbody.velocity.magnitude;
+        }
+
+        prevCheckPos = centerGroundCheck.transform.position;
+
+        Debug.DrawLine(
+            rbody.transform.position,
+            rbody.transform.position + (Vector3)rbody.velocity.normalized,
+            Color.cyan,
+            5,
+            false);
+
+        centerHit = Physics2D.Raycast(
+            transform.position,
+            transform.up * -1,
+            1000,
+            1 << LayerMask.NameToLayer("Solid"));
+        Debug.DrawLine(
+            centerHit.point,
+            centerHit.point + centerHit.normal,
+            Color.yellow,
+            5,
+            false);
     }
-
-
+    
     // Applies horizontal force to the rigidbody based on the horizontal input
     void MoveHorizontal() {
         float hInput = GameManager.InputHandler.getHorizontal();
         // Apply force to the rigidbody while the player is on the ground
         if (hInput != 0 
             && rbody.velocity.magnitude < maxRunSpeed
-            && groundCheck.isGrounded()) 
+            && grounded) 
         {
             rbody.AddRelativeForce(new Vector2(runMultiplier * hInput, 0));
         }
         // Apply force when the player is airborne
         else if (hInput != 0
             && rbody.velocity.magnitude < parachuteTravelMaxSpeed
-            && !groundCheck.isGrounded()) 
+            && !grounded) 
         {
             rbody.AddRelativeForce(new Vector2(parachuteTravelAcceleration * hInput, 0));
+            print("Player went airborne");
         }
     }
     
@@ -329,7 +231,7 @@ public class PlayerController : MonoBehaviour {
 
         // Player can jump as long as they are grounded and weren't holding
         // down jump i.e. canJump is true
-        if (jumpPressed && groundCheck.isGrounded() && canJump) {
+        if (jumpPressed && grounded && canJump) {
             rbody.AddRelativeForce(new Vector2(0, jumpStrength));
             canJump = false;
         }
@@ -339,7 +241,7 @@ public class PlayerController : MonoBehaviour {
     void ToggleParachute() {
         bool jumpPressed = GameManager.InputHandler.jumpPressed();
         bool isVelocityDown = rbody.velocity.y < 0;
-        bool playerFalling = !groundCheck.isGrounded();
+        bool playerFalling = !grounded;
         bool insideWindChannel = capCtrl.isInsideWind();
         //playerFalling = playerFalling && isVelocityDown;
 

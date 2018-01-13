@@ -3,33 +3,55 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class GroundCheck : MonoBehaviour {
-    private bool grounded = false;
+    public float groundCheckDistance = 1;
 
-    public bool isGrounded() {
-        return grounded;
-    }
+    Transform leftCheck;
+    Transform rightCheck;
 
-    // Set grounded to true when a collider with Ground tag is entering
-    // this gameobjects collider
-    void OnTriggerEnter2D(Collider2D other) {
-        if (other.CompareTag("Ground")) {
-            grounded = true;
+    void Start() {
+        foreach (Transform t in transform) {
+            if (t.name.Contains("Left")) {
+                leftCheck = t;
+            } else if (t.name.Contains("Right")) {
+                rightCheck = t;
+            }
         }
     }
     
-    // Set grounded to true when a collider with Ground tag is inside
-    // this gameobjects collider
-    void OnTriggerStay2D(Collider2D other) {
-        if (other.CompareTag("Ground")) {
-            grounded = true;
-        }
-    }
+    public bool isGrounded() {
+        RaycastHit2D leftHit = Physics2D.Raycast(
+            leftCheck.position,
+            leftCheck.up * -1,
+            groundCheckDistance,
+            1 << LayerMask.NameToLayer("Solid"));
+        RaycastHit2D rightHit = Physics2D.Raycast(
+            rightCheck.position,
+            rightCheck.up * -1,
+            groundCheckDistance,
+            1 << LayerMask.NameToLayer("Solid"));
 
-    // Set grounded to false when a collider with Ground tag is exiting
-    // this gameobjects collider
-    void OnTriggerExit2D(Collider2D other) {
-        if (other.CompareTag("Ground")) {
-            grounded = false;
+        if (false) {
+            Vector2 src, dest;
+
+            src = leftCheck.position;
+            dest = leftHit.collider != null
+                ? leftHit.point
+                : (Vector2)leftCheck.up * -groundCheckDistance;
+            Debug.DrawLine(src, dest, Color.green, 0, false);
+
+            src = rightCheck.position;
+            dest = rightHit.collider != null
+                ? rightHit.point
+                : (Vector2)rightCheck.up * -groundCheckDistance;
+            Debug.DrawLine(src, dest, Color.red, 0, false);
+        }
+
+        if (leftHit.collider != null || rightHit.collider != null) {
+            return true;
+        }
+        else {
+            return false;
+
         }
     }
 }
