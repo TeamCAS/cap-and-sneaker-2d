@@ -21,6 +21,8 @@ public class PlayerController : MonoBehaviour {
     public float playerWidth = 1;
     public float playerHeight = 2.5f;
 
+    public float leftCheckDist = 0.1f;
+
     Vector3 spawnPoint;
     Rigidbody2D rbody;
     GroundCheck groundCheck;
@@ -38,7 +40,6 @@ public class PlayerController : MonoBehaviour {
     GameObject leftGroundCheck;
     GameObject rightGroundCheck;
     GameObject centerGroundCheck;
-    public float groundCheckDistance = 1;
     float floorMode = -1;
 
     AnimationHandler animations;
@@ -47,9 +48,16 @@ public class PlayerController : MonoBehaviour {
     Vector3 prevCheckPos;
     float gspd;
 
+    bool prevGrounded = false;
+
     Vector3 cloneVector3(Vector3 orig) {
         return new Vector3(orig.x, orig.y, orig.z);
     }
+
+
+
+    //Indicators for debugging
+    GameObject groundedSignal;
 
 	// Use this for initialization
 	void Start () {
@@ -66,34 +74,48 @@ public class PlayerController : MonoBehaviour {
 
         prevPosition = cloneVector3(transform.position);
         animations = gameObject.GetComponentInChildren<AnimationHandler>();
+
+        groundedSignal = GameObject.Find("GroundedSignal");
     }
 
     void Update() {
         grounded = groundCheck.isGrounded();
         animations.UpdateParamaters(grounded, rbody.velocity, parachuteOpen);
-        Reposition();
     }
 
     void FixedUpdate() {
         speed = rbody.velocity.magnitude;
         grounded = groundCheck.isGrounded();
 
-        Reposition();
-        
-        // Reset the players rotation when they are in freefall
-        if (!groundCheck.isGrounded()) {
-         //   InterpolateRotation();
-        }
-        else {
-            rotationStartTime = -1;
+        bool leftSolid = groundCheck.solidToLeft();
+        bool rightSolid = groundCheck.solidToRight();
+        if (leftSolid && rbody.velocity.x < 0 || rightSolid && rbody.velocity.x > 0) {
+            rbody.velocity = new Vector2(0, rbody.velocity.y);
         }
 
+        groundedSignal.SetActive(!grounded);
+        rbody.gravityScale = 0;
+
+        if (grounded) {
+            Vector3 posDIff = RotateToSurfaceNormal();
+            if (speed > 20) {
+                transform.position += posDIff;
+            } else {
+                rbody.gravityScale = gravityScale;
+            }
+            rotationStartTime = -1;
+        } else {
+            rbody.gravityScale = gravityScale;
+            InterpolateRotation();
+        }        
+        
         if (!playerSitting) {
-            //StickyRun();
             MoveHorizontal();
             Jump();
             ToggleParachute();
         }
+
+        prevGrounded = grounded;
     }
 
     void InterpolateRotation() {
@@ -129,23 +151,106 @@ public class PlayerController : MonoBehaviour {
         prevPosition = cloneVector3(transform.position);
     }
 
+    Vector3 RotateToSurfaceNormal() {
+
+        RaycastHit2D centerHit = Physics2D.Raycast(
+            groundCheck.transform.position,
+            groundCheck.transform.up * -1,
+            groundCheck.groundCheckDistance,
+            1 << LayerMask.NameToLayer("Solid"));
+
+        Debug.DrawLine(
+            groundCheck.transform.position,
+            centerHit.collider != null
+            ? (Vector3) centerHit.point
+            : groundCheck.transform.position + groundCheck.transform.up * -groundCheck.groundCheckDistance,
+            Color.yellow,
+            0,
+            false);
+
+
+        if (centerHit.collider != null) {
+
+            // Rotate player to normal
+            float angle = Vector3.Angle(centerHit.normal, Vector3.up);
+            transform.rotation = new Quaternion();
+
+            if (centerHit.normal.x > 0) {
+                transform.Rotate(new Vector3(0, 0, 360 - angle));
+            }
+            else {
+                transform.Rotate(new Vector3(0, 0, angle));
+            }
+
+            // Update velocity vector to mimic player rotation changes
+            Vector3 surfaceSlope = rightGroundCheck.transform.position;
+            surfaceSlope -= leftGroundCheck.transform.position;
+            surfaceSlope.Normalize();
+
+            float rightVelAngle = Vector2.Angle(surfaceSlope, rbody.velocity);
+            if (rightVelAngle < 90) {
+                rbody.velocity = surfaceSlope * rbody.velocity.magnitude;
+            }
+            else if (rightVelAngle > 90) {
+                rbody.velocity = surfaceSlope * -rbody.velocity.magnitude;
+            }
+
+            return (Vector3)centerHit.point - centerGroundCheck.transform.position;
+        }
+
+        return new Vector3();
+    }
+
     void Reposition() {
         //UndoSolidPassThrough();
+
+        if (!grounded) return;
+
 
         RaycastHit2D centerHit = Physics2D.Raycast(
             transform.position,
             transform.up * -1,
-            groundCheckDistance,
+            groundCheck.groundCheckDistance,
             1 << LayerMask.NameToLayer("Solid"));
 
+        Vector3 leftSrc = leftGroundCheck.transform.position;
+        RaycastHit2D leftHit = Physics2D.Raycast(
+            leftSrc,
+            leftGroundCheck.transform.right * -1,
+            leftCheckDist,
+            1 << LayerMask.NameToLayer("Solid"));
 
         // DEBUGGING
         Debug.DrawLine(
             prevCheckPos,
             centerGroundCheck.transform.position,
             Color.magenta,
-            5,
+            0,
             false);
+
+        Debug.DrawLine(
+            leftSrc,
+            leftHit.collider != null ? (Vector3)leftHit.point : leftSrc + leftGroundCheck.transform.right * -leftCheckDist,
+            Color.green,
+            0,
+            false);
+
+        if (leftHit.collider != null) {
+            float angle = Vector3.Angle(leftHit.normal, Vector3.up);
+            transform.rotation = new Quaternion();
+
+            if (leftHit.normal.x > 0) {
+                transform.Rotate(new Vector3(0, 0, 360 - angle));
+            }
+            else {
+                transform.Rotate(new Vector3(0, 0, angle));
+            }
+            Vector3 posDifference = (Vector3)leftHit.point - centerGroundCheck.transform.position;
+            transform.position += posDifference;
+            rbody.velocity = new Vector2();
+            return;
+        }
+
 
         if (centerHit.collider != null) {
             float angle = Vector3.Angle(centerHit.normal, Vector3.up);
@@ -156,17 +261,21 @@ public class PlayerController : MonoBehaviour {
             } else {
                 transform.Rotate(new Vector3(0, 0, angle));
             }
+
+            if (speed < 5) return;
+
             Vector3 posDifference = (Vector3)centerHit.point - centerGroundCheck.transform.position;
             transform.position += posDifference;
         }
 
+        /*
         Debug.DrawLine(
             rbody.transform.position,
             rbody.transform.position + (Vector3)rbody.velocity.normalized,
             Color.blue,
             5,
             false);
-
+            */
         Vector3 surfaceSlope = rightGroundCheck.transform.position;
         surfaceSlope -= leftGroundCheck.transform.position;
         surfaceSlope.Normalize();
@@ -181,24 +290,26 @@ public class PlayerController : MonoBehaviour {
 
         prevCheckPos = centerGroundCheck.transform.position;
 
-        Debug.DrawLine(
-            rbody.transform.position,
-            rbody.transform.position + (Vector3)rbody.velocity.normalized,
-            Color.cyan,
-            5,
-            false);
-
         centerHit = Physics2D.Raycast(
             transform.position,
             transform.up * -1,
             1000,
             1 << LayerMask.NameToLayer("Solid"));
+
+        /*
+        Debug.DrawLine(
+            rbody.transform.position,
+            rbody.transform.position + (Vector3)rbody.velocity.normalized,
+            Color.cyan,
+            0,
+            false);
         Debug.DrawLine(
             centerHit.point,
             centerHit.point + centerHit.normal,
             Color.yellow,
-            5,
+            0,
             false);
+            */
     }
     
     // Applies horizontal force to the rigidbody based on the horizontal input
@@ -217,7 +328,6 @@ public class PlayerController : MonoBehaviour {
             && !grounded) 
         {
             rbody.AddRelativeForce(new Vector2(parachuteTravelAcceleration * hInput, 0));
-            print("Player went airborne");
         }
     }
     
