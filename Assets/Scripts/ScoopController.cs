@@ -33,7 +33,7 @@ public class ScoopController : MonoBehaviour
             payLoad.transform.rotation = payLoadPositioner.rotation;
 
             if (GameManager.InputHandler.jumpPressed()) {
-                payLoad.GetComponent<PlayerController>().SetSitting(false);
+                payLoad.GetComponent<PlayerController>().SetInteracting(false);
                 payLoad.GetComponent<Rigidbody2D>().AddRelativeForce(new Vector2(0, launchSpeed));
                 payLoad = null;
             }
@@ -63,7 +63,7 @@ public class ScoopController : MonoBehaviour
     void OnTriggerEnter2D(Collider2D other) {
         if (other.CompareTag("Player")) {
             PlayerController ply = other.gameObject.GetComponentInParent<PlayerController>();
-            ply.SetSitting(true);
+            ply.SetInteracting(true);
             ply.transform.position = payLoadPositioner.position;
             ply.transform.rotation = payLoadPositioner.rotation;
             payLoad = ply.gameObject;

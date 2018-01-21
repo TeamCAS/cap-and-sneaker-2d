@@ -28,7 +28,7 @@ public class PlayerController : MonoBehaviour {
     GroundCheck groundCheck;
     bool canJump = false;
     bool parachuteOpen;
-    bool playerSitting = false;
+    bool interacting = false;
 
     float rotationStartTime = -1;
 
@@ -96,6 +96,9 @@ public class PlayerController : MonoBehaviour {
         groundedSignal.SetActive(!grounded);
         rbody.gravityScale = 0;
 
+        // return if player is interacting
+        if (interacting) return;
+
         if (grounded) {
             Vector3 posDIff = RotateToSurfaceNormal();
             if (speed > 20) {
@@ -107,13 +110,11 @@ public class PlayerController : MonoBehaviour {
         } else {
             rbody.gravityScale = gravityScale;
             InterpolateRotation();
-        }        
-        
-        if (!playerSitting) {
-            MoveHorizontal();
-            Jump();
-            ToggleParachute();
         }
+        
+        MoveHorizontal();
+        Jump();
+        ToggleParachute();
 
         prevGrounded = grounded;
     }
@@ -371,8 +372,8 @@ public class PlayerController : MonoBehaviour {
         transform.position.Set(spawnPoint.x, spawnPoint.y, spawnPoint.z);
     }
 
-    public void SetSitting(bool state) {
-        playerSitting = state;
+    public void SetInteracting(bool state) {
+        interacting = state;
     }
 
     public bool isParachuteOpen() { return parachuteOpen; }
