@@ -55,6 +55,7 @@ public class ScoopController : MonoBehaviour
         if (rotating) {
             timeElapsed += Time.deltaTime;
             float rotation = -360 * timeElapsed * rpm / 60;
+            rotation += startingRotation.z;
             if (counterClockwise) rotation *= -1;
             transform.eulerAngles = new Vector3(0, 0, rotation);
         }
