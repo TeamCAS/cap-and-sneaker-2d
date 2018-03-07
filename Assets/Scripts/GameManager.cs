@@ -60,13 +60,14 @@ public class GameManager : MonoBehaviour {
     // data and provides the functionality to manipulate these values in 
     // various ways
     public static class DataHandler {
+        static float score;
         static float orbCount;
         static bool playerAlive;
 
         // Increments orb count by 1
         public static void incrementOrbCount() {
             orbCount++;
-            print("orbcount = " + orbCount);
+            score = orbCount * 10;
         }
 
         // Resets the orb count to zero
@@ -82,6 +83,9 @@ public class GameManager : MonoBehaviour {
         public static bool isPlayerAlive() {
             return playerAlive;
         }
+
+        public static float getOrbCount() { return orbCount; }
+        public static float getScore() { return score; }
 
     }
 
@@ -190,4 +194,5 @@ public class GameManager : MonoBehaviour {
         }
 
     }
+    
 }
