@@ -62,17 +62,23 @@ public class GameManager : MonoBehaviour {
     public static class DataHandler {
         static float score;
         static float orbCount;
+        static float lifeCount;
         static bool playerAlive;
 
         // Increments orb count by 1
         public static void incrementOrbCount() {
             orbCount++;
-            score = orbCount * 10;
+            score += 15;
         }
 
         // Resets the orb count to zero
         public static void zeroOrbCount() {
             orbCount = 0;
+        }
+
+        public static void incrementPlayerLives() {
+            lifeCount++;
+            score += 100;
         }
 
         // Sets the playerAlive to false
@@ -86,6 +92,7 @@ public class GameManager : MonoBehaviour {
 
         public static float getOrbCount() { return orbCount; }
         public static float getScore() { return score; }
+        public static float getLifeCount() { return lifeCount; }
 
     }
 

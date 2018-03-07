@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 public class ValueUpdater : MonoBehaviour {
 
+    [Header("Available options are below...")]
+    [Header("orb, score, player lives")]
     public string valueName = "";
 
     Text text;
@@ -20,6 +22,9 @@ public class ValueUpdater : MonoBehaviour {
         }
         else if (valueName == "score") {
             text.text = GameManager.DataHandler.getScore().ToString();
+        }
+        else if (valueName == "player lives") {
+            text.text = GameManager.DataHandler.getLifeCount().ToString();
         }
         else {
             text.text = "ERROR";
