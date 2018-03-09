@@ -12,14 +12,17 @@ public class OrbController : MonoBehaviour {
     AudioSource audio;
 
     private void Start() {
-        audio = GameObject.Find("OrbSFX").GetComponent<AudioSource>();
+        GameObject orbSFX = GameObject.Find("OrbSFX");
+        if (orbSFX == null) Debug.LogWarning("OrbSFX GameObject not found!");
+        else audio = orbSFX.GetComponent<AudioSource>();
+        if (audio == null) Debug.LogWarning("OrbSFX GameObject does not have an AudioSource!");
     }
 
     void OnTriggerEnter2D(Collider2D other) {
         if (other.CompareTag("Player") && !collected) {
             collected = true;
             GameManager.DataHandler.incrementOrbCount();
-            audio.PlayOneShot(audio.clip);
+            if (audio != null) audio.PlayOneShot(audio.clip);
             Destroy(gameObject);
             gameObject.SetActive(false);
         }

@@ -85,7 +85,6 @@ public class EnemyGuardGround : MonoBehaviour {
 
     void OnTriggerEnter2D(Collider2D other) {
         if (other.CompareTag("Player")) {
-            print("Player SPOTTED!");
             chaseTarget = other.transform;
             targetSpotted = true;
         }
@@ -93,7 +92,6 @@ public class EnemyGuardGround : MonoBehaviour {
 
     void OnTriggerExit2D(Collider2D other) {
         if (other.CompareTag("Player")) {
-            print("Player LOST!");
             chaseTarget = null;
             targetSpotted = false;
             chaseTimerStarted = false;

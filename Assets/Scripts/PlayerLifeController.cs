@@ -9,14 +9,17 @@ public class PlayerLifeController : MonoBehaviour {
     AudioSource audio;
 
     private void Start() {
-        audio = GameObject.Find("PlayerLifeSFX").GetComponent<AudioSource>();
+        GameObject plSFX = GameObject.Find("PlayerLifeSFX");
+        if (plSFX == null) Debug.LogWarning("PlayerLifeSFX GameObject not found!");
+        else audio = plSFX.GetComponent<AudioSource>();
+        if (audio == null) Debug.LogWarning("PlayerLifeSFX GameObject does not have an AudioSource!");
     }
 
     void OnTriggerEnter2D(Collider2D other) {
         if (other.CompareTag("Player") && !collected) {
             collected = true;
             GameManager.DataHandler.incrementPlayerLives();
-            audio.PlayOneShot(audio.clip);
+            if (audio != null) audio.PlayOneShot(audio.clip);
             Destroy(gameObject);
             gameObject.SetActive(false);
         }

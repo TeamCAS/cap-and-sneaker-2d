@@ -38,7 +38,7 @@ public class GameManager : MonoBehaviour {
             return 0;
         }
 
-        public static bool jumpPressed() { return jump == 1; }
+        public static bool jumpPressed() { return controlsEnabled && jump == 1; }
 
         public static void setHorizontal(float h) { horizontal = h; }
         public static void setJump(float j) {

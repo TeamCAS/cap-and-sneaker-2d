@@ -12,7 +12,12 @@ public class AnimationHandler : MonoBehaviour {
         animator = gameObject.GetComponentInParent<Animator>();
     }
 
-    public void UpdateParamaters(bool grounded, Vector2 velocity, bool parachuteOpen) {
+    public void UpdateParamaters(bool grounded, Vector2 velocity, bool parachuteOpen, bool playerHit) {
+
+        if (playerHit) {
+            animator.SetBool("HitBack", playerHit);
+            return;
+        }
 
         float speed = velocity.magnitude / playerCtrl.maxRunSpeed;
         animator.SetFloat("Velocity", speed);

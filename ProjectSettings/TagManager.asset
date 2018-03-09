@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Ground
   - WindChannel
+  - EnemyAttackPoint
   layers:
   - Default
   - TransparentFX

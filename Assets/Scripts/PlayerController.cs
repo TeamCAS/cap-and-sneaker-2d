@@ -80,7 +80,7 @@ public class PlayerController : MonoBehaviour {
 
     void Update() {
         grounded = groundCheck.isGrounded();
-        animations.UpdateParamaters(grounded, rbody.velocity, parachuteOpen);
+        animations.UpdateParamaters(grounded, rbody.velocity, parachuteOpen, damageTaken);
     }
 
     void FixedUpdate() {
@@ -370,6 +370,32 @@ public class PlayerController : MonoBehaviour {
 
     void Respawn() {
         transform.position.Set(spawnPoint.x, spawnPoint.y, spawnPoint.z);
+    }
+
+
+    bool damageTaken = false;
+    public void TakeDamage() {
+        // Only take damage once recovered
+        if (damageTaken) return;
+        damageTaken = true;
+
+        // Disable Controls
+        GameManager.InputHandler.disableControls();
+
+        // If no orbs then player faints
+        if (GameManager.DataHandler.getOrbCount() == 0) {
+            print("Player should faint");
+        }
+
+        // Else player loses orbs
+        else {
+            print("Player should lose orbs");
+        }
+
+        // Update animation parameters
+
+        // Start recovery time
+
     }
 
     public void SetInteracting(bool state) {
