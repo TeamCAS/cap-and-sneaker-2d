@@ -24,7 +24,7 @@ GameObject:
   - component: {fileID: 50819251301860456}
   - component: {fileID: 58854181412114110}
   - component: {fileID: 58742418984695238}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Crookie
   m_TagString: Untagged
   m_Icon: {fileID: 0}

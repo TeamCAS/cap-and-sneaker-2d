@@ -4,9 +4,35 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour {
 
-    // These values are only used for viewing in editor
+    [Header("Read Only")]
     public bool controlsEnabled;
     public float horizontal, jump;
+
+    [Header("Starting Data Values")]
+    public int startOrbCount = 0;
+    public int startLifeCount = 0;
+
+    GameObject orbObject;
+
+    void Start() {
+        // Find child objects to create clones from
+        foreach (Transform child in transform) {
+            if (child.CompareTag("Orb")) {
+                orbObject = child.gameObject;
+            }
+        }
+
+        if (orbObject == null) Debug.LogWarning("Origunal Orb GameObject not found.");
+        else ObjectCreator.SetOrbObject(orbObject);
+
+        DataHandler.SetLifeCount(startLifeCount);
+        DataHandler.SetOrbCount(startOrbCount);
+
+        // Ignore collisions between collectibles and enemies
+        Physics2D.IgnoreLayerCollision(11, 12, true);
+        // Ignore collisions between collectibles
+        Physics2D.IgnoreLayerCollision(11, 11, true);
+    }
 
     void FixedUpdate() {
         InputHandler.setHorizontal(Input.GetAxis("Horizontal"));
@@ -18,7 +44,30 @@ public class GameManager : MonoBehaviour {
         controlsEnabled = InputHandler.isControlsEnabled();
         horizontal = InputHandler.getHorizontal();
         jump = InputHandler.getJump();
-}
+    }
+
+
+
+    public static class ObjectCreator {
+        static GameObject orb;
+
+        // Creates a non kinematic orb subject to external forces
+        public static GameObject createOrb(Vector3 position, Quaternion rotation) {
+            if (orb == null) {
+                Debug.LogWarning("Original orb not found, cannot create requested orb");
+                return null;
+            }
+
+            GameObject orbClone = GameObject.Instantiate(orb, position, rotation);
+            orbClone.SetActive(true);
+            return orbClone;
+        }
+
+        public static void SetOrbObject(GameObject obj) { orb = obj; }
+    }
+
+
+
 
     // Holds onto the input variable results that other objects can use
     // each game loop
@@ -64,6 +113,7 @@ public class GameManager : MonoBehaviour {
         static float orbCount;
         static float lifeCount;
         static bool playerAlive;
+        static bool playerHit;
 
         // Increments orb count by 1
         public static void incrementOrbCount() {
@@ -81,6 +131,13 @@ public class GameManager : MonoBehaviour {
             score += 100;
         }
 
+        // When player is hit, disable ability for them to 
+        // gather collectibles until they regain control
+        public static void SetPlayerHit() {
+            playerHit = true;
+            Physics2D.IgnoreLayerCollision(10, 11, true);
+        }
+
         // Sets the playerAlive to false
         public static void SetPlayerDead() { playerAlive = false; }
         // Sets the playerAlive to false
@@ -89,6 +146,9 @@ public class GameManager : MonoBehaviour {
         public static bool isPlayerAlive() {
             return playerAlive;
         }
+
+        public static void SetOrbCount(float amt) { orbCount = amt; }
+        public static void SetLifeCount(float amt) { lifeCount = amt; }
 
         public static float getOrbCount() { return orbCount; }
         public static float getScore() { return score; }

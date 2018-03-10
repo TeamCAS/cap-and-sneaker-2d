@@ -7,6 +7,7 @@ TagManager:
   - Ground
   - WindChannel
   - EnemyAttackPoint
+  - Orb
   layers:
   - Default
   - TransparentFX
@@ -19,8 +20,8 @@ TagManager:
   - Ground
   - Solid
   - Player
-  - 
-  - 
+  - Collectible
+  - Enemy
   - 
   - 
   - 

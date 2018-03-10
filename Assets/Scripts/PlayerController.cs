@@ -372,12 +372,12 @@ public class PlayerController : MonoBehaviour {
         transform.position.Set(spawnPoint.x, spawnPoint.y, spawnPoint.z);
     }
 
-
     bool damageTaken = false;
     public void TakeDamage() {
         // Only take damage once recovered
         if (damageTaken) return;
         damageTaken = true;
+        GameManager.DataHandler.SetPlayerHit();
 
         // Disable Controls
         GameManager.InputHandler.disableControls();
@@ -390,12 +390,38 @@ public class PlayerController : MonoBehaviour {
         // Else player loses orbs
         else {
             print("Player should lose orbs");
+            DropOrbs();
         }
 
         // Update animation parameters
 
         // Start recovery time
 
+    }
+
+    void DropOrbs() {
+        float orbCount = GameManager.DataHandler.getOrbCount();
+        GameObject orbClone;
+        if (orbCount >= 1) {
+            orbClone = GameManager.ObjectCreator.createOrb(transform.position, new Quaternion());
+            orbClone.GetComponent<Rigidbody2D>().velocity = new Vector2(0, 10);
+        }
+        if (orbCount >= 2) {
+            orbClone = GameManager.ObjectCreator.createOrb(transform.position, new Quaternion());
+            orbClone.GetComponent<Rigidbody2D>().velocity = new Vector2(10, 10);
+        }
+        if (orbCount >= 3) {
+            orbClone = GameManager.ObjectCreator.createOrb(transform.position, new Quaternion());
+            orbClone.GetComponent<Rigidbody2D>().velocity = new Vector2(-10, 10);
+        }
+        if (orbCount >= 4) {
+            orbClone = GameManager.ObjectCreator.createOrb(transform.position, new Quaternion());
+            orbClone.GetComponent<Rigidbody2D>().velocity = new Vector2(5, 10);
+        }
+        if (orbCount >= 5) {
+            orbClone = GameManager.ObjectCreator.createOrb(transform.position, new Quaternion());
+            orbClone.GetComponent<Rigidbody2D>().velocity = new Vector2(-5, 10);
+        }
     }
 
     public void SetInteracting(bool state) {
