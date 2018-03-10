@@ -399,29 +399,37 @@ public class PlayerController : MonoBehaviour {
 
     }
 
+    public float orbDropVelocity = 1;
     void DropOrbs() {
         float orbCount = GameManager.DataHandler.getOrbCount();
         GameObject orbClone;
         if (orbCount >= 1) {
             orbClone = GameManager.ObjectCreator.createOrb(transform.position, new Quaternion());
-            orbClone.GetComponent<Rigidbody2D>().velocity = new Vector2(0, 10);
+            Vector2 vel = new Vector2(0, 1).normalized * orbDropVelocity;
+            orbClone.GetComponent<Rigidbody2D>().velocity = vel;
         }
         if (orbCount >= 2) {
             orbClone = GameManager.ObjectCreator.createOrb(transform.position, new Quaternion());
-            orbClone.GetComponent<Rigidbody2D>().velocity = new Vector2(10, 10);
+            Vector2 vel = new Vector2(1, 1).normalized * orbDropVelocity;
+            orbClone.GetComponent<Rigidbody2D>().velocity = vel;
         }
         if (orbCount >= 3) {
             orbClone = GameManager.ObjectCreator.createOrb(transform.position, new Quaternion());
-            orbClone.GetComponent<Rigidbody2D>().velocity = new Vector2(-10, 10);
+            Vector2 vel = new Vector2(-1, 1).normalized * orbDropVelocity;
+            orbClone.GetComponent<Rigidbody2D>().velocity = vel;
         }
         if (orbCount >= 4) {
             orbClone = GameManager.ObjectCreator.createOrb(transform.position, new Quaternion());
-            orbClone.GetComponent<Rigidbody2D>().velocity = new Vector2(5, 10);
+            Vector2 vel = new Vector2(0.5f, 1).normalized * orbDropVelocity;
+            orbClone.GetComponent<Rigidbody2D>().velocity = vel;
         }
         if (orbCount >= 5) {
             orbClone = GameManager.ObjectCreator.createOrb(transform.position, new Quaternion());
-            orbClone.GetComponent<Rigidbody2D>().velocity = new Vector2(-5, 10);
+            Vector2 vel = new Vector2(-0.5f, 1).normalized * orbDropVelocity;
+            orbClone.GetComponent<Rigidbody2D>().velocity = vel;
         }
+
+        GameManager.DataHandler.zeroOrbCount();
     }
 
     public void SetInteracting(bool state) {

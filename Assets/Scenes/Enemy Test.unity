@@ -1431,7 +1431,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &703266689
 Transform:
   m_ObjectHideFlags: 0
@@ -1773,6 +1773,11 @@ Prefab:
         type: 2}
       propertyPath: runMultiplier
       value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 114313780031337410, guid: 4b84cc1f4129e594bab118d523e29786,
+        type: 2}
+      propertyPath: orbDropVelocity
+      value: 20
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 4b84cc1f4129e594bab118d523e29786, type: 2}
@@ -2974,6 +2979,42 @@ Prefab:
         type: 2}
       propertyPath: m_Pivot.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 114059498568323508, guid: 35ab0af94416df0478e2c20db38040e8,
+        type: 2}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: bb142ffb7573ef245b1056072333bb2d,
+        type: 3}
+    - target: {fileID: 114059498568323508, guid: 35ab0af94416df0478e2c20db38040e8,
+        type: 2}
+      propertyPath: m_Color.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114059498568323508, guid: 35ab0af94416df0478e2c20db38040e8,
+        type: 2}
+      propertyPath: m_Color.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114059498568323508, guid: 35ab0af94416df0478e2c20db38040e8,
+        type: 2}
+      propertyPath: m_Color.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 224735678492421328, guid: 35ab0af94416df0478e2c20db38040e8,
+        type: 2}
+      propertyPath: m_SizeDelta.x
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 224735678492421328, guid: 35ab0af94416df0478e2c20db38040e8,
+        type: 2}
+      propertyPath: m_SizeDelta.y
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 224735678492421328, guid: 35ab0af94416df0478e2c20db38040e8,
+        type: 2}
+      propertyPath: m_AnchoredPosition.x
+      value: 10
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 35ab0af94416df0478e2c20db38040e8, type: 2}
