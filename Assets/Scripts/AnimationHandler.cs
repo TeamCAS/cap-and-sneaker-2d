@@ -14,10 +14,10 @@ public class AnimationHandler : MonoBehaviour {
 
     public void UpdateParamaters(bool grounded, Vector2 velocity, bool parachuteOpen, bool playerHit) {
 
-        if (playerHit) {
-            animator.SetBool("HitBack", playerHit);
-            return;
-        }
+        // Set the animation value, if true don't update other values
+        // since the damage animation should take priority
+        animator.SetBool("HitBack", playerHit);
+        if (playerHit) return;
 
         float speed = velocity.magnitude / playerCtrl.maxRunSpeed;
         animator.SetFloat("Velocity", speed);

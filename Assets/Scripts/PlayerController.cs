@@ -23,6 +23,11 @@ public class PlayerController : MonoBehaviour {
 
     public float leftCheckDist = 0.1f;
 
+    [Header("How far the player gets pushed when hit")]
+    public float hitPushStrength = 1;
+    [Header("Duration in seconds the player has no control when damaged")]
+    public float damagedDuration = 1;
+
     Vector3 spawnPoint;
     Rigidbody2D rbody;
     GroundCheck groundCheck;
@@ -54,10 +59,12 @@ public class PlayerController : MonoBehaviour {
         return new Vector3(orig.x, orig.y, orig.z);
     }
 
-
-
     //Indicators for debugging
     GameObject groundedSignal;
+
+
+    float hitTimerStart;
+
 
 	// Use this for initialization
 	void Start () {
@@ -84,6 +91,12 @@ public class PlayerController : MonoBehaviour {
     }
 
     void FixedUpdate() {
+        if (damageTaken && Time.time - hitTimerStart >= damagedDuration) {
+            damageTaken = false;
+            GameManager.InputHandler.enableControls();
+            GameManager.DataHandler.SetPlayerRecovered();
+        }
+
         speed = rbody.velocity.magnitude;
         grounded = groundCheck.isGrounded();
 
@@ -373,9 +386,10 @@ public class PlayerController : MonoBehaviour {
     }
 
     bool damageTaken = false;
-    public void TakeDamage() {
+    public void TakeDamage(Vector3 hitPoint) {
         // Only take damage once recovered
         if (damageTaken) return;
+        hitTimerStart = Time.time;
         damageTaken = true;
         GameManager.DataHandler.SetPlayerHit();
 
@@ -391,6 +405,33 @@ public class PlayerController : MonoBehaviour {
         else {
             print("Player should lose orbs");
             DropOrbs();
+            rbody.velocity = new Vector2();
+
+            // Get right and left points based on characters location
+            // in world space
+            Vector3 trueRight = transform.right + transform.position;
+            Vector3 trueLeft = -1 * transform.right + transform.position;
+
+            // Test which side the player was hit from, left or right
+            float rightDist = Vector3.Distance(trueRight, hitPoint);
+            float leftDist = Vector3.Distance(trueLeft, hitPoint);
+
+            if (rightDist < leftDist) {
+                // Player was hit from the player gameobjects right
+                Vector3 hitVector = transform.right * -1;
+                hitVector += new Vector3(0, 1, 0);
+                hitVector.Normalize();
+                hitVector *= hitPushStrength;
+                rbody.AddForce(hitVector);
+            }
+            else {
+                // Player was hit from the player gameobjects left
+                Vector3 hitVector = transform.right;
+                hitVector += new Vector3(0, 1, 0);
+                hitVector.Normalize();
+                hitVector *= hitPushStrength;
+                rbody.AddForce(hitVector);
+            }
         }
 
         // Update animation parameters

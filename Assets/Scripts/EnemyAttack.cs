@@ -4,16 +4,21 @@ using UnityEngine;
 
 public class EnemyAttack : MonoBehaviour {
 
-    void OnTriggerEnter2D(Collider2D other) {
+    EnemyGuardGround egg;
+
+    void OnCollisionEnter2D(Collision2D collision) {
+        Collider2D other = collision.collider;
         if (other.CompareTag("Player")) {
             PlayerController plyCtrl= other.GetComponentInParent<PlayerController>();
-            plyCtrl.TakeDamage();
+            plyCtrl.TakeDamage(collision.contacts[0].point);
+            egg.SetHitPlayer();
         }
     }
 
     // Use this for initialization
     void Start () {
-		
+        egg = GetComponentInParent<EnemyGuardGround>();
+        if (egg == null) Debug.LogWarning("EnemyGuardGround not found in parent object");
 	}
 	
 	// Update is called once per frame

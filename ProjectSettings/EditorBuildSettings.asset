@@ -20,6 +20,9 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/ScoopTest.unity
     guid: 61e93781c46e66e4aa539c31578b6b4b
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/GUI Test.unity
     guid: 5c1b9eb18604566419ae14330015379d
+  - enabled: 1
+    path: Assets/Scenes/Enemy Test.unity
+    guid: 031d9c9587c86484fa151715575e7544

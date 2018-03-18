@@ -132,10 +132,18 @@ public class GameManager : MonoBehaviour {
         }
 
         // When player is hit, disable ability for them to 
-        // gather collectibles until they regain control
+        // gather collectibles until they regain control. Also prevent
+        // enemies from targeting or hitting them.
         public static void SetPlayerHit() {
             playerHit = true;
             Physics2D.IgnoreLayerCollision(10, 11, true);
+            Physics2D.IgnoreLayerCollision(10, 12, true);
+        }
+
+        public static void SetPlayerRecovered() {
+            playerHit = false;
+            Physics2D.IgnoreLayerCollision(10, 11, false);
+            Physics2D.IgnoreLayerCollision(10, 12, false);
         }
 
         // Sets the playerAlive to false

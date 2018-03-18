@@ -9,7 +9,6 @@ public class EnemyGuardGround : MonoBehaviour {
     public float chaseDuration = 2;
     [Header("How long to wait before chasing again")]
     public float restDuration = 2;
-
     [Header("Max distance to travel before turning around")]
     public float maxDistance = 1;
     [Header("If empty, will be the enemy starting position")]
@@ -35,6 +34,12 @@ public class EnemyGuardGround : MonoBehaviour {
 
     // Update is called once per frame
     void FixedUpdate () {
+
+        if (hitPlayer) {
+            restTimerStarted = false;
+            rested = false;
+            //print("HIT THE PLAYER YAY!!!!");
+        }
 
         if (targetSpotted && rested) {
             Chase();
@@ -105,8 +110,8 @@ public class EnemyGuardGround : MonoBehaviour {
         Gizmos.DrawSphere(sourcePos, 0.5f);
     }
 
-    // Determine if enemy can chase the player
-    void PlayerSpotted () {
-        
+    bool hitPlayer = false;
+    public void SetHitPlayer () {
+        hitPlayer = true;
     }
 }
