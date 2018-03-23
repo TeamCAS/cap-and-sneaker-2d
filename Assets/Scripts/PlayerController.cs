@@ -392,6 +392,7 @@ public class PlayerController : MonoBehaviour {
         hitTimerStart = Time.time;
         damageTaken = true;
         GameManager.DataHandler.SetPlayerHit();
+        GameManager.SoundHandler.StartPlayerHitSFX();
 
         // Disable Controls
         GameManager.InputHandler.disableControls();

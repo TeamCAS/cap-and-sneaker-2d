@@ -32,6 +32,9 @@ public class GameManager : MonoBehaviour {
         Physics2D.IgnoreLayerCollision(11, 12, true);
         // Ignore collisions between collectibles
         Physics2D.IgnoreLayerCollision(11, 11, true);
+
+        AudioSource sfx = GameObject.Find("PlayerHitSFX").GetComponent<AudioSource>();
+        SoundHandler.SetAudioSource(sfx);
     }
 
     void FixedUpdate() {
@@ -66,6 +69,18 @@ public class GameManager : MonoBehaviour {
         public static void SetOrbObject(GameObject obj) { orb = obj; }
     }
 
+
+    public static class SoundHandler {
+        static AudioSource playerHit;
+
+        public static void SetAudioSource(AudioSource playerHitSFX) {
+            playerHit = playerHitSFX;
+        }
+
+        public static void StartPlayerHitSFX() {
+            playerHit.PlayOneShot(playerHit.clip);
+        }
+    }
 
 
 
