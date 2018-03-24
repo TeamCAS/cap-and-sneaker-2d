@@ -177,6 +177,8 @@ public class GameManager : MonoBehaviour {
         public static float getScore() { return score; }
         public static float getLifeCount() { return lifeCount; }
 
+        public static bool GetPlayerHitStatus() { return playerHit; }
+
     }
 
 

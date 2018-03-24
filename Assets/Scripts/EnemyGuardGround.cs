@@ -35,7 +35,7 @@ public class EnemyGuardGround : MonoBehaviour {
     // Update is called once per frame
     void FixedUpdate () {
 
-        if (hitPlayer) {
+        if (GameManager.DataHandler.GetPlayerHitStatus()) {
             restTimerStarted = false;
             rested = false;
             //print("HIT THE PLAYER YAY!!!!");
@@ -110,8 +110,4 @@ public class EnemyGuardGround : MonoBehaviour {
         Gizmos.DrawSphere(sourcePos, 0.5f);
     }
 
-    bool hitPlayer = false;
-    public void SetHitPlayer () {
-        hitPlayer = true;
-    }
 }
