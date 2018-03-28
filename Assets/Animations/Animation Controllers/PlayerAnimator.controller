@@ -74,7 +74,7 @@ BlendTree:
     m_Mirror: 0
   - serializedVersion: 2
     m_Motion: {fileID: 7400000, guid: b1ca03a81f1c44248a7c3fbc85581b3b, type: 2}
-    m_Threshold: 0.5
+    m_Threshold: 0.33333334
     m_Position: {x: 0, y: 0}
     m_TimeScale: 2
     m_CycleOffset: 0
@@ -82,9 +82,17 @@ BlendTree:
     m_Mirror: 0
   - serializedVersion: 2
     m_Motion: {fileID: 7400000, guid: 4b420783a48f3bf4baf8282c13eb538d, type: 2}
-    m_Threshold: 1
+    m_Threshold: 0.6666667
     m_Position: {x: 0, y: 0}
     m_TimeScale: 1.8
+    m_CycleOffset: 0
+    m_DirectBlendParameter: Velocity
+    m_Mirror: 0
+  - serializedVersion: 2
+    m_Motion: {fileID: 7400000, guid: fa6a24f5cddf3e141a33236abf90f92b, type: 2}
+    m_Threshold: 1
+    m_Position: {x: 0, y: 0}
+    m_TimeScale: 1
     m_CycleOffset: 0
     m_DirectBlendParameter: Velocity
     m_Mirror: 0
@@ -320,6 +328,31 @@ AnimatorStateTransition:
   m_InterruptionSource: 0
   m_OrderedInterruption: 1
   m_CanTransitionToSelf: 1
+--- !u!1102 &1102006364358161934
+AnimatorState:
+  serializedVersion: 5
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: PlayerRunAttack
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 7400000, guid: fa6a24f5cddf3e141a33236abf90f92b, type: 2}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
 --- !u!1102 &1102018042070544122
 AnimatorState:
   serializedVersion: 5
@@ -473,6 +506,9 @@ AnimatorStateMachine:
   - serializedVersion: 1
     m_State: {fileID: 1102589175881194824}
     m_Position: {x: 264, y: 12, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: 1102006364358161934}
+    m_Position: {x: 24, y: 144, z: 0}
   m_ChildStateMachines: []
   m_AnyStateTransitions:
   - {fileID: 1101992356130448650}
