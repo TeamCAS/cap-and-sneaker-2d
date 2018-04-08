@@ -1,54 +1,50 @@
 using UnityEngine;
 using System.Collections;
 using DentedPixel;
+using System.Collections.Generic;
 
+// Execute this code in edit mode so that the path is visible
+// while it is being edited!
+[ExecuteInEditMode]
 public class PathSpline2d : MonoBehaviour {
 
-	public Transform[] cubes;
+	public Transform[] pathPoints;
 
 	public GameObject dude1;
 	public GameObject dude2;
 
 	private LTSpline visualizePath;
 
-    int id;
-
     float timerStart = -1;
-	void Start () {
-		Vector3[] path = new Vector3[] {
-			cubes[0].position,
-			cubes[1].position,
-			cubes[2].position,
-			cubes[3].position,
-			cubes[4].position,
-			cubes[5].position,
-			cubes[6].position,
-			cubes[7].position
-        };
 
-		visualizePath = new LTSpline( path );
+	void Start () {
+        PathUpdater();
 
         timerStart = Time.time;
 
 	}
 
-    void FixedUpdate() {
-        Vector3[] path = new Vector3[] {
-            cubes[0].position,
-            cubes[1].position,
-            cubes[2].position,
-            cubes[3].position,
-            cubes[4].position,
-            cubes[5].position,
-            cubes[6].position,
-            cubes[7].position
-        };
+    void PathUpdater () {
+        List<Vector3> path = new List<Vector3>();
+        foreach (var tform in pathPoints) {
+            path.Add(tform.position);
+        }
+        visualizePath = new LTSpline(path.ToArray());
+    }
+    
+    void Update() {
+        PathUpdater();
+    }
 
-        visualizePath = new LTSpline(path);
+    void FixedUpdate() {
+        PathUpdater();
 
         float remaining = Time.time - timerStart;
         remaining /= 1;
         visualizePath.place2d(dude2.transform, remaining);
+        if (remaining >= 1) {
+            timerStart = Time.time;
+        }
     }
 
     void OnDrawGizmos(){
