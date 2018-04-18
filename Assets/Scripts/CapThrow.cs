@@ -14,17 +14,51 @@ public class CapThrow : MonoBehaviour {
     public Transform[] pathPoints;
 
     public GameObject cap;
+    public GameObject reticle;
 
     LTSpline visualizePath;
     float timerStart = -1;
     bool started;
     GameObject target;
+    GameObject closestTarget;
 
     void Start() {
     }
 
     void Update() {
         PathUpdater();
+        UpdateTarget();
+    }
+
+    void UpdateTarget() {
+        if (closestTarget != null) {
+            Vector3 dir = closestTarget.transform.position - transform.position;
+            dir.Normalize();
+            transform.right = dir;
+            reticle.SetActive(true);
+            reticle.transform.position = closestTarget.transform.position;
+        }
+    }
+
+    void OnTriggerStay2D(Collider2D collision) {
+        if (collision.CompareTag("Collectible")) {
+            if (closestTarget == null) {
+                closestTarget = collision.gameObject;
+            } else {
+                float dist = Vector3.Distance(transform.position, collision.transform.position);
+                float closestDistance = Vector3.Distance(transform.position, closestTarget.transform.position);
+                if (dist < closestDistance) {
+                    closestTarget = collision.gameObject;
+                }
+            }
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D collision) {
+        if (collision.gameObject == closestTarget) {
+            closestTarget = null;
+            reticle.SetActive(false);
+        }
     }
 
     void FixedUpdate() {

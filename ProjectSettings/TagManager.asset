@@ -8,6 +8,7 @@ TagManager:
   - WindChannel
   - EnemyAttackPoint
   - Orb
+  - Collectible
   layers:
   - Default
   - TransparentFX
