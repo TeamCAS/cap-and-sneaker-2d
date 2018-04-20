@@ -9,6 +9,7 @@ TagManager:
   - EnemyAttackPoint
   - Orb
   - Collectible
+  - ThrownCap
   layers:
   - Default
   - TransparentFX

@@ -19,10 +19,15 @@ public class CapThrow : MonoBehaviour {
     LTSpline visualizePath;
     float timerStart = -1;
     bool started;
-    GameObject target;
+    Vector3 targetPos;
     GameObject closestTarget;
 
+    GameObject path;
+    float maxTargetDistance;
+
     void Start() {
+        path = GameObject.Find("Path");
+        maxTargetDistance = GetComponent<CircleCollider2D>().radius;
     }
 
     void Update() {
@@ -32,32 +37,45 @@ public class CapThrow : MonoBehaviour {
 
     void UpdateTarget() {
         if (closestTarget != null) {
-            Vector3 dir = closestTarget.transform.position - transform.position;
+            Vector3 dir = targetPos - transform.position;
             dir.Normalize();
             transform.right = dir;
             reticle.SetActive(true);
             reticle.transform.position = closestTarget.transform.position;
+
+            float throwDist = Vector3.Distance(targetPos, transform.position);
+            path.transform.localScale = new Vector3(throwDist, 1, 1);
+
+            if (throwDist > maxTargetDistance && !started) {
+                closestTarget = null;
+            }
+        } else {
+            reticle.SetActive(false);
+            transform.right = Vector3.right;
+            path.transform.localScale = new Vector3(maxTargetDistance, 1, 1);
         }
     }
 
     void OnTriggerStay2D(Collider2D collision) {
-        if (collision.CompareTag("Collectible")) {
+        if (collision.CompareTag("Collectible") && !started) {
             if (closestTarget == null) {
                 closestTarget = collision.gameObject;
+                targetPos = closestTarget.transform.position;
             } else {
                 float dist = Vector3.Distance(transform.position, collision.transform.position);
                 float closestDistance = Vector3.Distance(transform.position, closestTarget.transform.position);
                 if (dist < closestDistance) {
                     closestTarget = collision.gameObject;
+                    targetPos = closestTarget.transform.position;
                 }
             }
         }
     }
 
     void OnTriggerExit2D(Collider2D collision) {
-        if (collision.gameObject == closestTarget) {
+        if (collision.gameObject == closestTarget && !started) {
             closestTarget = null;
-            reticle.SetActive(false);
+            targetPos = new Vector3();
         }
     }
 
@@ -95,7 +113,7 @@ public class CapThrow : MonoBehaviour {
     }
 
     public void StartCapThrow(GameObject dest) {
-        target = dest;
+        //target = dest;
 
         if (started) {
             Debug.LogWarning("Attempted to start a new throw when cap throw already in progress.");

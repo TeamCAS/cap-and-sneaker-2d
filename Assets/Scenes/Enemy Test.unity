@@ -793,7 +793,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &319069005
 Transform:
   m_ObjectHideFlags: 0
@@ -1037,7 +1037,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4985901622072336, guid: a9df9dd9212afde48ba98e998c970826, type: 2}
       propertyPath: m_LocalPosition.y
-      value: 4.2682147
+      value: 7.528215
       objectReference: {fileID: 0}
     - target: {fileID: 4985901622072336, guid: a9df9dd9212afde48ba98e998c970826, type: 2}
       propertyPath: m_LocalPosition.z
@@ -2318,8 +2318,8 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1121049399}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.56, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1993770765}
@@ -2366,7 +2366,7 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 10
+  m_Radius: 15
 --- !u!4 &1131981639 stripped
 Transform:
   m_PrefabParentObject: {fileID: 4464376858249734, guid: 1400389821d4a41448b814994eb48320,
@@ -2525,9 +2525,10 @@ GameObject:
   - component: {fileID: 1330348077}
   - component: {fileID: 1330348078}
   - component: {fileID: 1330348079}
+  - component: {fileID: 1330348080}
   m_Layer: 10
   m_Name: CapSprite
-  m_TagString: Untagged
+  m_TagString: ThrownCap
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2606,6 +2607,21 @@ Animator:
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
+--- !u!58 &1330348080
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1330348076}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  serializedVersion: 2
+  m_Radius: 0.45
 --- !u!4 &1344346598 stripped
 Transform:
   m_PrefabParentObject: {fileID: 4346191335822374, guid: 1400389821d4a41448b814994eb48320,
@@ -3103,7 +3119,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4985901622072336, guid: a9df9dd9212afde48ba98e998c970826, type: 2}
       propertyPath: m_LocalPosition.y
-      value: 4.2682147
+      value: 7.528215
       objectReference: {fileID: 0}
     - target: {fileID: 4985901622072336, guid: a9df9dd9212afde48ba98e998c970826, type: 2}
       propertyPath: m_LocalPosition.z
@@ -3330,7 +3346,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4985901622072336, guid: a9df9dd9212afde48ba98e998c970826, type: 2}
       propertyPath: m_LocalPosition.y
-      value: 4.2
+      value: 7.46
       objectReference: {fileID: 0}
     - target: {fileID: 4985901622072336, guid: a9df9dd9212afde48ba98e998c970826, type: 2}
       propertyPath: m_LocalPosition.z
@@ -3675,7 +3691,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4122769284433406, guid: 1400389821d4a41448b814994eb48320, type: 2}
       propertyPath: m_LocalScale.x
-      value: 10
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 212553998622962014, guid: 1400389821d4a41448b814994eb48320,
         type: 2}
