@@ -23,7 +23,7 @@ GameObject:
   - component: {fileID: 58318125536650852}
   - component: {fileID: 114775521197177916}
   - component: {fileID: 114508898828386224}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Player Life
   m_TagString: Collectible
   m_Icon: {fileID: 0}

@@ -35,6 +35,7 @@ public class GameManager : MonoBehaviour {
 
         AudioSource sfx = GameObject.Find("PlayerHitSFX").GetComponent<AudioSource>();
         SoundHandler.SetAudioSource(sfx);
+        
     }
 
     void FixedUpdate() {
@@ -299,4 +300,14 @@ public class GameManager : MonoBehaviour {
 
     }
     
+
+
+    public enum Layer {
+        Default     = 0,
+        Ground      = 8,
+        Solid,
+        Player,
+        Collectible,
+        Enemy
+    }
 }

@@ -17,6 +17,7 @@ public class RetrievableByCapThrow : MonoBehaviour {
     void OnTriggerEnter2D(Collider2D other) {
         if (other.CompareTag("ThrownCap")) {
             posAnchor = other.transform;
+            print("anchor set");
         }
     }
 }

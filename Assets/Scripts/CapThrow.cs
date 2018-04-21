@@ -57,7 +57,7 @@ public class CapThrow : MonoBehaviour {
     }
 
     void OnTriggerStay2D(Collider2D collision) {
-        if (collision.CompareTag("Collectible") && !started) {
+        if (collision.gameObject.layer == (int)GameManager.Layer.Collectible && !started) {
             if (closestTarget == null) {
                 closestTarget = collision.gameObject;
                 targetPos = closestTarget.transform.position;
