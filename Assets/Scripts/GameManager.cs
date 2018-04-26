@@ -35,14 +35,16 @@ public class GameManager : MonoBehaviour {
 
         AudioSource sfx = GameObject.Find("PlayerHitSFX").GetComponent<AudioSource>();
         SoundHandler.SetAudioSource(sfx);
+        
     }
 
     void FixedUpdate() {
         InputHandler.setHorizontal(Input.GetAxis("Horizontal"));
         InputHandler.setJump(Input.GetAxis("Jump"));
+        InputHandler.setThrow(Input.GetAxis("Fire1"));
 
         //StateHandler.updateState();
-        
+
         // Update values so they can be seen in editor
         controlsEnabled = InputHandler.isControlsEnabled();
         horizontal = InputHandler.getHorizontal();
@@ -87,6 +89,7 @@ public class GameManager : MonoBehaviour {
     // Holds onto the input variable results that other objects can use
     // each game loop
     public static class InputHandler {
+        static bool capThrow;
         static float horizontal;
         static float jump;
         static bool controlsEnabled = true;
@@ -102,6 +105,11 @@ public class GameManager : MonoBehaviour {
             return 0;
         }
 
+        public static bool getThrow() {
+            if (controlsEnabled) return capThrow;
+            return false;
+        }
+
         public static bool jumpPressed() { return controlsEnabled && jump == 1; }
 
         public static void setHorizontal(float h) { horizontal = h; }
@@ -114,6 +122,11 @@ public class GameManager : MonoBehaviour {
         public static void enableControls() { controlsEnabled = true; }
         public static void disableControls() { controlsEnabled = false; }
         public static bool isControlsEnabled() { return controlsEnabled; }
+
+        public static void setThrow(float value) {
+            if (value > 0.5f) capThrow = true;
+            else capThrow = false;
+        }
     }
 
 
@@ -287,4 +300,14 @@ public class GameManager : MonoBehaviour {
 
     }
     
+
+
+    public enum Layer {
+        Default     = 0,
+        Ground      = 8,
+        Solid,
+        Player,
+        Collectible,
+        Enemy
+    }
 }
