@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour {
 
@@ -12,7 +13,15 @@ public class GameManager : MonoBehaviour {
     public int startOrbCount = 0;
     public int startLifeCount = 0;
 
+    [Header("How long do transitions last in milliseconds?")]
+    public float transitionDuration = 2000;
+
+
+
     GameObject orbObject;
+
+    // Used to fade screen to black
+    Image transitionOverlay;
 
     void Start() {
         // Find child objects to create clones from
@@ -35,7 +44,8 @@ public class GameManager : MonoBehaviour {
 
         AudioSource sfx = GameObject.Find("PlayerHitSFX").GetComponent<AudioSource>();
         SoundHandler.SetAudioSource(sfx);
-        
+
+        transitionOverlay = GameObject.Find("TransitionOverlay").GetComponent<Image>();
     }
 
     void FixedUpdate() {
@@ -49,9 +59,27 @@ public class GameManager : MonoBehaviour {
         controlsEnabled = InputHandler.isControlsEnabled();
         horizontal = InputHandler.getHorizontal();
         jump = InputHandler.getJump();
+
+        
     }
 
+    
+    private void Update() {
+        startTransition();
+    }
 
+    bool transitionStarted = false;
+    float transitionStartTime;
+    public void startTransition() {
+        if (!transitionStarted) {
+            transitionStarted = true;
+            transitionStartTime = Time.time;
+        } else {
+            float progress = Time.time - transitionStartTime;
+            progress /= transitionDuration;
+            transitionOverlay.color = Color.Lerp(Color.clear, Color.black, progress);
+        }
+    }
 
     public static class ObjectCreator {
         static GameObject orb;
