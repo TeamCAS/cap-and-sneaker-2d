@@ -20,9 +20,6 @@ public class GameManager : MonoBehaviour {
 
     GameObject orbObject;
 
-    // Used to fade screen to black
-    Image transitionOverlay;
-
     void Start() {
         // Find child objects to create clones from
         foreach (Transform child in transform) {
@@ -44,8 +41,20 @@ public class GameManager : MonoBehaviour {
 
         AudioSource sfx = GameObject.Find("PlayerHitSFX").GetComponent<AudioSource>();
         SoundHandler.SetAudioSource(sfx);
+        /*
+        ObjectCreator.SetCanvasAnimations(GameObject.Find("CanvasAnimations").transform);
+        ObjectCreator.SetRipplesHorizontal(GameObject.Find("RipplesHorizontal"));
+        ObjectCreator.SetColumns(GameObject.Find("Columns"));
+        ObjectCreator.SetOpacityOverlay(GameObject.Find("OpacityOverlay"));
+        ObjectCreator.SetLoadingEnd(GameObject.Find("LoadingEnd"));
+        */
+        Transform canvasAnimations = GameObject.Find("CanvasAnimations").transform;
+        ObjectCreator.SetCanvasAnimations(canvasAnimations);
+        foreach (Transform child in canvasAnimations) {
+            if (child.name == "LoadingEnd") ObjectCreator.SetLoadingEnd(child.gameObject);
+        }
 
-        transitionOverlay = GameObject.Find("TransitionOverlay").GetComponent<Image>();
+        StateHandler.setState(StateHandler.GameState.LOAD_START);
     }
 
     void FixedUpdate() {
@@ -60,29 +69,19 @@ public class GameManager : MonoBehaviour {
         horizontal = InputHandler.getHorizontal();
         jump = InputHandler.getJump();
 
+
+        StateHandler.updateState();
         
-    }
-
-    
-    private void Update() {
-        startTransition();
-    }
-
-    bool transitionStarted = false;
-    float transitionStartTime;
-    public void startTransition() {
-        if (!transitionStarted) {
-            transitionStarted = true;
-            transitionStartTime = Time.time;
-        } else {
-            float progress = Time.time - transitionStartTime;
-            progress /= transitionDuration;
-            transitionOverlay.color = Color.Lerp(Color.clear, Color.black, progress);
-        }
     }
 
     public static class ObjectCreator {
         static GameObject orb;
+
+        static GameObject canvasRipplesHorizontal;
+        static GameObject canvasColumns;
+        static GameObject canvasOpacityOverlay;
+        static GameObject canvasLoadingEnd;
+        static Transform canvasAnimations;
 
         // Creates a non kinematic orb subject to external forces
         public static GameObject createOrb(Vector3 position, Quaternion rotation) {
@@ -96,7 +95,46 @@ public class GameManager : MonoBehaviour {
             return orbClone;
         }
 
+        public static void createCanvasRippleHorizontal() {
+            if (canvasRipplesHorizontal == null) {
+                Debug.LogWarning("Original Canvas Ripple Horizontal not found, cannot create requested canvas ripple");
+            }
+            GameObject clone = GameObject.Instantiate(canvasRipplesHorizontal, canvasAnimations.transform);
+            clone.SetActive(true);
+        }
+
+        public static void createCanvasColumns() {
+            if (canvasColumns == null) {
+                Debug.LogWarning("Original Canvas Columns not found, cannot create requested canvas columns");
+            }
+            GameObject clone = GameObject.Instantiate(canvasColumns, canvasAnimations.transform);
+            clone.SetActive(true);
+        }
+
+        public static void createCanvasOpacityOverlay() {
+            if (canvasOpacityOverlay == null) {
+                Debug.LogWarning("Original canvas opacity overlay not found, cannot create requested canvas overlay");
+            }
+            GameObject clone = GameObject.Instantiate(canvasOpacityOverlay, canvasAnimations.transform);
+            clone.SetActive(true);
+        }
+
+        public static void createCanvasLoadingEnd() {
+            if (canvasLoadingEnd == null) {
+                Debug.LogWarning("Original canvas loading end not found, cannot create requested canvas loading end");
+            }
+            GameObject clone = GameObject.Instantiate(canvasLoadingEnd, canvasAnimations.transform);
+            clone.SetActive(true);
+        }
+
         public static void SetOrbObject(GameObject obj) { orb = obj; }
+
+        public static void SetCanvasAnimations(Transform obj) { canvasAnimations = obj; }
+        public static void SetRipplesHorizontal(GameObject obj) { canvasRipplesHorizontal = obj; }
+        public static void SetColumns(GameObject obj) { canvasColumns= obj; }
+        public static void SetOpacityOverlay(GameObject obj) { canvasOpacityOverlay = obj; }
+        public static void SetLoadingEnd(GameObject obj) { canvasLoadingEnd = obj; }
+
     }
 
 
@@ -222,8 +260,23 @@ public class GameManager : MonoBehaviour {
 
     }
 
+    public static class CanvasAnimationHandler {
+        public enum Animation { None, LoadingEnd, Complete }
+        public static Animation current = Animation.None;
 
+        public static void Start(Animation anim) {
+            if (current == Animation.None) {
+                current = anim;
+                if (anim == Animation.LoadingEnd) {
+                    ObjectCreator.createCanvasLoadingEnd();
+                }
+            }
+        }
 
+        public static void End() {
+            current = Animation.Complete;
+        }
+    }
 
 
     // Keeps track of state the game is currently in and which state 
@@ -239,6 +292,7 @@ public class GameManager : MonoBehaviour {
 
         // The current state the whole game is in
         static GameState current;
+        static GameState previous;
 
         public static GameState getCurrent() { return current; }
 
@@ -271,16 +325,25 @@ public class GameManager : MonoBehaviour {
 
                         //TODO When loading is complete, switch to LOAD_END state
                         current = GameState.LOAD_END;
+
                         break;
                     }
                 case GameState.LOAD_END: {
+                        DataHandler.SetPlayerAlive();
 
                         //TODO Start load end animation if not running
+                        if (CanvasAnimationHandler.current == CanvasAnimationHandler.Animation.None) {
+                            CanvasAnimationHandler.Start(CanvasAnimationHandler.Animation.LoadingEnd);
+                        }
+                        // If animation is done, switch to proper state and enable player controls
+                        else if (CanvasAnimationHandler.current == CanvasAnimationHandler.Animation.Complete) {
+                            current = GameState.GAMEPLAY;
+                            InputHandler.enableControls();
+                        }
 
-                        //TODO If animation is done, switch to proper state and
-                        //     enable player controls
-                        current = GameState.GAMEPLAY;
-                        InputHandler.enableControls();
+                        break;
+                    }
+                case GameState.GAMEPLAY: {
                         break;
                     }
                 default: {
@@ -289,7 +352,8 @@ public class GameManager : MonoBehaviour {
                         break;
                     }   
             }
-
+            print(current);
+            previous = current;
         }
     }
 
