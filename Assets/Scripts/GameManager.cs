@@ -1,9 +1,18 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour {
+
+    public enum Scene { Respawn, Test, None }
+    [Header("Which scene should load?")]
+    public Scene sceneToLoad = Scene.None;
+
+    [Header("Show scene intro animation?")]
+    public bool showIntro = false;
+
 
     [Header("Read Only")]
     public bool controlsEnabled;
@@ -21,6 +30,18 @@ public class GameManager : MonoBehaviour {
     GameObject orbObject;
 
     void Start() {
+
+        if (sceneToLoad == Scene.Respawn) LevelHandler.loadRespawnScene();
+        else if (sceneToLoad == Scene.Test) LevelHandler.loadTestScene();
+
+        LevelHandler.prepareLevel();
+
+        if (showIntro) {
+            StateHandler.setState(StateHandler.GameState.STAGE_INTRO);
+        } else {
+            StateHandler.setState(StateHandler.GameState.GAMEPLAY);
+        }
+
         // Find child objects to create clones from
         foreach (Transform child in transform) {
             if (child.CompareTag("Orb")) {
@@ -52,9 +73,12 @@ public class GameManager : MonoBehaviour {
         ObjectCreator.SetCanvasAnimations(canvasAnimations);
         foreach (Transform child in canvasAnimations) {
             if (child.name == "LoadingEnd") ObjectCreator.SetLoadingEnd(child.gameObject);
+            else if (child.name == "FadeToBlack") ObjectCreator.SetCanvasFadeToBlack(child.gameObject);
+            else if (child.name == "Blackout") ObjectCreator.SetCanvasBlackout(child.gameObject);
         }
 
-        StateHandler.setState(StateHandler.GameState.LOAD_START);
+        DataHandler.SetPlayerAlive();
+        DataHandler.setPlayerOutOfBounds(false);
     }
 
     void FixedUpdate() {
@@ -74,6 +98,10 @@ public class GameManager : MonoBehaviour {
         
     }
 
+    private void Update() {
+        //CanvasHandler.updateStatus();
+    }
+
     public static class ObjectCreator {
         static GameObject orb;
 
@@ -81,6 +109,8 @@ public class GameManager : MonoBehaviour {
         static GameObject canvasColumns;
         static GameObject canvasOpacityOverlay;
         static GameObject canvasLoadingEnd;
+        static GameObject canvasFadeToBlack;
+        static GameObject canvasBlackout;
         static Transform canvasAnimations;
 
         // Creates a non kinematic orb subject to external forces
@@ -119,12 +149,34 @@ public class GameManager : MonoBehaviour {
             clone.SetActive(true);
         }
 
-        public static void createCanvasLoadingEnd() {
+        public static GameObject createCanvasLoadingEnd() {
             if (canvasLoadingEnd == null) {
                 Debug.LogWarning("Original canvas loading end not found, cannot create requested canvas loading end");
+                return null;
             }
             GameObject clone = GameObject.Instantiate(canvasLoadingEnd, canvasAnimations.transform);
             clone.SetActive(true);
+            return clone;
+        }
+
+        public static GameObject createCanvasFadeToBlack() {
+            if (canvasFadeToBlack == null) {
+                Debug.LogWarning("Original canvas loading end not found, cannot create requested canvas loading end");
+                return null;
+            }
+            GameObject clone = GameObject.Instantiate(canvasFadeToBlack, canvasAnimations.transform);
+            clone.SetActive(true);
+            return clone;
+        }
+
+        public static GameObject createCanvasBlackout() {
+            if (canvasBlackout == null) {
+                Debug.LogWarning("Original canvas loading end not found, cannot create requested canvas loading end");
+                return null;
+            }
+            GameObject clone = GameObject.Instantiate(canvasBlackout, canvasAnimations.transform);
+            clone.SetActive(true);
+            return clone;
         }
 
         public static void SetOrbObject(GameObject obj) { orb = obj; }
@@ -134,6 +186,8 @@ public class GameManager : MonoBehaviour {
         public static void SetColumns(GameObject obj) { canvasColumns= obj; }
         public static void SetOpacityOverlay(GameObject obj) { canvasOpacityOverlay = obj; }
         public static void SetLoadingEnd(GameObject obj) { canvasLoadingEnd = obj; }
+        public static void SetCanvasFadeToBlack(GameObject obj) { canvasFadeToBlack = obj; }
+        public static void SetCanvasBlackout(GameObject obj) { canvasBlackout = obj; }
 
     }
 
@@ -208,6 +262,10 @@ public class GameManager : MonoBehaviour {
         static float lifeCount;
         static bool playerAlive;
         static bool playerHit;
+        static bool playerOutOfBounds;
+
+        static bool loadingEndComplete;
+        static bool canvasAnimationComplete;
 
         // Increments orb count by 1
         public static void incrementOrbCount() {
@@ -249,6 +307,9 @@ public class GameManager : MonoBehaviour {
             return playerAlive;
         }
 
+        public static void setPlayerOutOfBounds(bool val) { playerOutOfBounds = val; }
+        public static bool getPlayerOutOfBounds() { return playerOutOfBounds; }
+
         public static void SetOrbCount(float amt) { orbCount = amt; }
         public static void SetLifeCount(float amt) { lifeCount = amt; }
 
@@ -258,23 +319,39 @@ public class GameManager : MonoBehaviour {
 
         public static bool GetPlayerHitStatus() { return playerHit; }
 
+        public static void SetLoadingEndComplete(bool val) { loadingEndComplete = val; }
+        public static bool getLoadingEndComplete() { return loadingEndComplete; }
+
+        public static void setPlayingCanvasAnimation(bool val) { canvasAnimationComplete = val; }
+        public static bool getPlayingCanvasAnimation() { return canvasAnimationComplete; }
     }
 
-    public static class CanvasAnimationHandler {
-        public enum Animation { None, LoadingEnd, Complete }
+
+
+
+
+
+    public static class CanvasHandler {
+        public enum Animation { None, LoadingEnd, Complete, FadeToBlack, Blackout }
         public static Animation current = Animation.None;
+        static Transform canvasAnimations;
 
-        public static void Start(Animation anim) {
-            if (current == Animation.None) {
-                current = anim;
-                if (anim == Animation.LoadingEnd) {
-                    ObjectCreator.createCanvasLoadingEnd();
-                }
+        public static CanvasAnimation Start(Animation anim) {
+            if (anim == Animation.LoadingEnd) {
+                GameObject animObj = ObjectCreator.createCanvasLoadingEnd();
+                return animObj.GetComponent<CanvasAnimation>();
             }
-        }
-
-        public static void End() {
-            current = Animation.Complete;
+            else if (anim == Animation.FadeToBlack) {
+                GameObject animObj = ObjectCreator.createCanvasFadeToBlack();
+                return animObj.GetComponent<CanvasAnimation>();
+            }
+            else if (anim == Animation.Blackout) {
+                GameObject animObj = ObjectCreator.createCanvasBlackout();
+                return animObj.GetComponent<CanvasAnimation>();
+            }
+            else {
+                return null;
+            }
         }
     }
 
@@ -287,7 +364,10 @@ public class GameManager : MonoBehaviour {
             GAMEPLAY,
             LOAD_START,
             LOADING,
-            LOAD_END
+            LOADING_RESPAWN,
+            LOAD_END,
+            PLAYER_OUT_OF_BOUNDS,
+            STAGE_INTRO
         }
 
         // The current state the whole game is in
@@ -299,6 +379,10 @@ public class GameManager : MonoBehaviour {
         // Sets the state of the game
         public static void setState(GameState state) { current = state; }
 
+        static CanvasAnimation ca_playerOutOfBounds;
+        static CanvasAnimation ca_loadStart;
+        static CanvasAnimation ca_loadEnd;
+
         // Runs every update to check whether the state of the game 
         // should change based on requested state and values. 
         public static void updateState() {
@@ -306,22 +390,60 @@ public class GameManager : MonoBehaviour {
             if (!DataHandler.isPlayerAlive() && current == GameState.GAMEPLAY) {
                 current = GameState.LOAD_START;
             }
-            
-            switch (current) {
-                case GameState.LOAD_START: {
-                        //TODO Disable player controls
-                        InputHandler.disableControls();
-                        //TODO start loading animation if not running
 
-                        //TODO If animation is done, switch to LOADING state
-                        current = GameState.LOADING;
+            if (DataHandler.getPlayerOutOfBounds() && current == GameState.GAMEPLAY) {
+                current = GameState.PLAYER_OUT_OF_BOUNDS;
+            }
+            
+            print(current);
+            switch (current) {
+                case GameState.PLAYER_OUT_OF_BOUNDS: {
+                        InputHandler.disableControls();
+                        if (ca_playerOutOfBounds == null) {
+                            ca_playerOutOfBounds = CanvasHandler.Start(CanvasHandler.Animation.FadeToBlack);
+                        }
+                        else if (ca_playerOutOfBounds.complete) {
+                            current = GameState.LOADING_RESPAWN;
+                            ca_playerOutOfBounds = null;
+                        }
+                        break;
+                    }
+                case GameState.LOADING_RESPAWN: {
+                        /*
+                        if (ca_loadStart == null) {
+                            ca_loadStart = CanvasHandler.Start(CanvasHandler.Animation.FadeToBlack);
+                        }
+                        else if (ca_loadStart.complete) {
+                            current = GameState.LOADING;
+                            ca_loadStart = null;
+                        }
+                        */
+                        LevelHandler.respawn();
+                        current = GameState.STAGE_INTRO;
+                        break;
+                    }
+                case GameState.STAGE_INTRO: {
+                        DataHandler.SetPlayerAlive();
+                        DataHandler.setPlayerOutOfBounds(false);
+                        if (ca_loadEnd == null) {
+                            CanvasHandler.Start(CanvasHandler.Animation.Blackout);
+                            ca_loadEnd = CanvasHandler.Start(CanvasHandler.Animation.LoadingEnd);
+                        }
+                        else if (ca_loadEnd.complete) {
+                            current = GameState.GAMEPLAY;
+                            InputHandler.enableControls();
+                            ca_loadEnd = null;
+                        }
+                        break;
+                    }
+                case GameState.LOAD_START: {
+                        current = GameState.PLAYER_OUT_OF_BOUNDS;
                         break;
                     }
                 case GameState.LOADING: {
                         //TODO Show loading screen if not running
 
                         //TODO Perform loading tasks
-                        LevelHandler.loadLevel();
 
                         //TODO When loading is complete, switch to LOAD_END state
                         current = GameState.LOAD_END;
@@ -330,17 +452,15 @@ public class GameManager : MonoBehaviour {
                     }
                 case GameState.LOAD_END: {
                         DataHandler.SetPlayerAlive();
-
-                        //TODO Start load end animation if not running
-                        if (CanvasAnimationHandler.current == CanvasAnimationHandler.Animation.None) {
-                            CanvasAnimationHandler.Start(CanvasAnimationHandler.Animation.LoadingEnd);
+                        DataHandler.setPlayerOutOfBounds(false);
+                        if (ca_loadEnd == null) {
+                            ca_loadEnd = CanvasHandler.Start(CanvasHandler.Animation.LoadingEnd);
                         }
-                        // If animation is done, switch to proper state and enable player controls
-                        else if (CanvasAnimationHandler.current == CanvasAnimationHandler.Animation.Complete) {
+                        else if (ca_loadEnd.complete) {
                             current = GameState.GAMEPLAY;
                             InputHandler.enableControls();
+                            ca_loadEnd = null;
                         }
-
                         break;
                     }
                 case GameState.GAMEPLAY: {
@@ -352,7 +472,6 @@ public class GameManager : MonoBehaviour {
                         break;
                     }   
             }
-            print(current);
             previous = current;
         }
     }
@@ -360,34 +479,24 @@ public class GameManager : MonoBehaviour {
 
     public static class LevelHandler {
 
-        public enum Level {
-            TEST,
-            STAGE_ONE
+        static GameObject player;
+        static Vector3 respawnLocation;
+
+        public static void loadTestScene() {
+            SceneManager.LoadScene("Test", LoadSceneMode.Single);
+        }
+        public static void loadRespawnScene() {
+            SceneManager.LoadScene("Respawn", LoadSceneMode.Single);
         }
 
-        private static Level current = Level.TEST;
-
-        private static void loadTestStage() {
-            // Return if the level is already loaded
-            if (current == Level.TEST) return;
-
+        public static void prepareLevel() {
+            player = GameObject.Find("Player");
+            respawnLocation = player.transform.position;
         }
 
-        private static void loadStageOne() {
-            // Return if the level is already loaded
-            if (current == Level.STAGE_ONE) return;
-
-        }
-
-        public static void loadLevel() {
-            switch (current) {
-                case Level.TEST: loadTestStage();
-                    break;
-                case Level.STAGE_ONE: loadStageOne();
-                    break;
-                default:
-                    break;
-            }
+        public static void respawn() {
+            player.transform.position = respawnLocation;
+            player.GetComponent<Rigidbody2D>().velocity = new Vector3();
         }
 
     }

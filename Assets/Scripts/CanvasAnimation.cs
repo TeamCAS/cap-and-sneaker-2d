@@ -31,9 +31,5 @@ public class CanvasAnimation : MonoBehaviour {
             }
         }
         complete = status;
-        //if (complete) Debug.Break();
-        if (complete) {
-            GameManager.CanvasAnimationHandler.End(); ;
-        }
 	}
 }

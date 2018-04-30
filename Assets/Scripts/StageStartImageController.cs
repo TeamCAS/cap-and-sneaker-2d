@@ -20,6 +20,9 @@ public class StageStartImageController : MonoBehaviour {
     public bool transformWidth = false;
     public bool transformHeight = false;
 
+    [Header("Self destruct after x seconds, -1 to disable")]
+    public float timeToSelfDestruct = -1;
+
     float origHeight;
     float origWidth;
 
@@ -48,6 +51,8 @@ public class StageStartImageController : MonoBehaviour {
 
     public bool isComplete() { return complete; }
 
+    bool destroyingSelf = false;
+
 	// Update is called once per frame
 	void Update () {
         if (startDelay < Time.time - triggeredTime && !complete) {
@@ -58,6 +63,10 @@ public class StageStartImageController : MonoBehaviour {
         if (sizeActions != SizeActions.None) complete = complete && sizeComplete;
         if (opacityAction != OpacityAction.None) complete = complete && opacityComplete;
 
+        if (!destroyingSelf && complete && timeToSelfDestruct >= 0) {
+            destroyingSelf = true;
+            Destroy(transform.parent.gameObject, timeToSelfDestruct);
+        }
     }
 
     bool sizeComplete = false;
