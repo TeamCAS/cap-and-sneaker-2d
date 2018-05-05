@@ -8,6 +8,9 @@ public class PlayerController : MonoBehaviour {
 
     public float runMultiplier = 200;
     public float maxRunSpeed = 40;
+    public float runAttackMinSpeed = 36;
+
+
     public float jumpStrength = 1000;
     public float parachuteDescentSpeed = 4.5f;
     public float parachuteTravelAcceleration = 1;
@@ -64,6 +67,7 @@ public class PlayerController : MonoBehaviour {
 
 
     float hitTimerStart;
+    bool runAttackActive = false;
 
 
 	// Use this for initialization
@@ -87,10 +91,13 @@ public class PlayerController : MonoBehaviour {
 
     void Update() {
         grounded = groundCheck.isGrounded();
-        animations.UpdateParamaters(grounded, rbody.velocity, parachuteOpen, damageTaken);
+        
+        animations.UpdateParamaters(grounded, rbody.velocity, parachuteOpen, damageTaken, runAttackActive);
     }
 
     void FixedUpdate() {
+
+        // Check if player has recovered
         if (damageTaken && Time.time - hitTimerStart >= damagedDuration) {
             damageTaken = false;
             GameManager.InputHandler.enableControls();
@@ -99,6 +106,13 @@ public class PlayerController : MonoBehaviour {
 
         speed = rbody.velocity.magnitude;
         grounded = groundCheck.isGrounded();
+
+        // Activate player run attack if traveling fast enough.
+        runAttackActive = false;
+        if (grounded && speed >= runAttackMinSpeed) {
+            runAttackActive = true;
+            print("RUN ATTACK ACTIVATED");
+        }
 
         bool leftSolid = groundCheck.solidToLeft();
         bool rightSolid = groundCheck.solidToRight();

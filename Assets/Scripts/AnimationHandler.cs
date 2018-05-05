@@ -6,13 +6,29 @@ public class AnimationHandler : MonoBehaviour {
 
     Animator animator;
     PlayerController playerCtrl;
-	
+
+    GameObject boom;
+    SmokeTrail smokeTrail;
+
 	void Start () {
         playerCtrl = gameObject.GetComponentInParent<PlayerController>();
         animator = gameObject.GetComponentInParent<Animator>();
+        smokeTrail = GetComponent<SmokeTrail>();
+
+        foreach(Transform t in transform) {
+            if (t.name == "Boom") {
+                boom = t.gameObject;
+            }
+        }
     }
 
-    public void UpdateParamaters(bool grounded, Vector2 velocity, bool parachuteOpen, bool playerHit) {
+    public void UpdateParamaters(
+        bool grounded, 
+        Vector2 velocity, 
+        bool parachuteOpen, 
+        bool playerHit,
+        bool runAttackActive) 
+    {
 
         // Set the animation value, if true don't update other values
         // since the damage animation should take priority
@@ -23,13 +39,16 @@ public class AnimationHandler : MonoBehaviour {
         animator.SetFloat("Velocity", speed);
         animator.SetBool("ParachuteOpen", parachuteOpen);
 
-
         float verticalVelocity = velocity.y;
         verticalVelocity = verticalVelocity < 0 ? -1 : verticalVelocity;
         verticalVelocity = verticalVelocity > 0 ? 1 : verticalVelocity;
         
         animator.SetFloat("VerticalVelocity", verticalVelocity);
         animator.SetBool("Grounded", grounded);
+
+        boom.SetActive(runAttackActive);
+        if (runAttackActive) smokeTrail.enabled = true;
+        else smokeTrail.enabled = false;
 
         ScaleFlip(velocity, playerCtrl.transform.up);
     }
