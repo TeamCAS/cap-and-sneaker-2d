@@ -11,6 +11,7 @@ TagManager:
   - Collectible
   - ThrownCap
   - OutOfBounds
+  - PlayerFist
   layers:
   - Default
   - TransparentFX

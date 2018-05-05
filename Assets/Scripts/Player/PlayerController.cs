@@ -68,6 +68,8 @@ public class PlayerController : MonoBehaviour {
 
     float hitTimerStart;
     bool runAttackActive = false;
+    FistStrike fistStrike;
+
 
 
 	// Use this for initialization
@@ -87,6 +89,10 @@ public class PlayerController : MonoBehaviour {
         animations = gameObject.GetComponentInChildren<AnimationHandler>();
 
         groundedSignal = GameObject.Find("GroundedSignal");
+
+        foreach (Transform t in transform) {
+            if (t.name == "Fist") fistStrike = t.GetComponent<FistStrike>();
+        }
     }
 
     void Update() {
@@ -113,6 +119,7 @@ public class PlayerController : MonoBehaviour {
             runAttackActive = true;
             print("RUN ATTACK ACTIVATED");
         }
+        fistStrike.SetActive(runAttackActive);
 
         bool leftSolid = groundCheck.solidToLeft();
         bool rightSolid = groundCheck.solidToRight();
@@ -401,6 +408,7 @@ public class PlayerController : MonoBehaviour {
 
     bool damageTaken = false;
     public void TakeDamage(Vector3 hitPoint) {
+        print("Player Hit");
         // Only take damage once recovered
         if (damageTaken) return;
         hitTimerStart = Time.time;
@@ -414,6 +422,7 @@ public class PlayerController : MonoBehaviour {
         // If no orbs then player faints
         if (GameManager.DataHandler.getOrbCount() == 0) {
             print("Player should faint");
+            GameManager.DataHandler.SetPlayerDead();
         }
 
         // Else player loses orbs

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 // Execute this code in edit mode so that the path is visible
 // while it is being edited!
-[ExecuteInEditMode]
+//[ExecuteInEditMode]
 public class CapThrow : MonoBehaviour {
 
     [Header("How long it takes for the cap to return in seconds")]
