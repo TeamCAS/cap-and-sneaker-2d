@@ -7,16 +7,21 @@ public class EnemyController : MonoBehaviour {
     public float launchStrength = 1;
 
     EnemyGuardGround guard;
+    GameObject capCover;
+
     void Start() {
         guard = GetComponentInParent<EnemyGuardGround>();
+        foreach(Transform t in transform) {
+            if (t.name == "CapCover") capCover = t.gameObject;
+        }
     }
 
-    enum Action { HitPlayer, HitByFist, None, Blocked }
+    enum Action { HitPlayer, HitByFist, HitByCapKick, None, Blocked }
     Action action = Action.None;
 
     void FixedUpdate() {
         if (action == Action.Blocked) return;
-        if (action == Action.HitByFist) {
+        if (action == Action.HitByFist || action == Action.HitByCapKick) {
             action = Action.Blocked;
             DieFromFistAttack();
         }
@@ -46,10 +51,14 @@ public class EnemyController : MonoBehaviour {
 
     Vector3 vel;
     void OnTriggerEnter2D(Collider2D other) {
-        if (other.CompareTag("PlayerFist")) {
+        if (other.CompareTag("PlayerFist") || other.CompareTag("PlayerKick")) {
             print("Enemy Should Die");
             vel = (transform.position - other.transform.position) * launchStrength;
             action = Action.HitByFist;
+        }
+        else if (other.CompareTag("ThrownCap")) {
+            other.transform.parent.GetComponent<CapThrow>().PauseCapThrow();
+            capCover.SetActive(true);
         }
     }
 

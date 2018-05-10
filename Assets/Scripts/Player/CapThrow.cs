@@ -25,6 +25,8 @@ public class CapThrow : MonoBehaviour {
     GameObject path;
     float maxTargetDistance;
 
+    bool prevThrow;
+
     void Start() {
         path = GameObject.Find("Path");
         maxTargetDistance = GetComponent<CircleCollider2D>().radius;
@@ -57,7 +59,13 @@ public class CapThrow : MonoBehaviour {
     }
 
     void OnTriggerStay2D(Collider2D collision) {
-        if (collision.gameObject.layer == (int)GameManager.Layer.Collectible && !started) {
+        bool targetable = false;
+        int layer = collision.gameObject.layer;
+
+        if (layer == (int)GameManager.Layer.Collectible) targetable = true;
+        else if (layer == (int)GameManager.Layer.Enemy) targetable = true;
+
+        if (targetable && !started) {
             if (closestTarget == null) {
                 closestTarget = collision.gameObject;
                 targetPos = closestTarget.transform.position;
@@ -80,16 +88,28 @@ public class CapThrow : MonoBehaviour {
     }
 
     void FixedUpdate() {
-        if (GameManager.InputHandler.getThrow()) {
-            if (!started) {
+        
+        if (closestTarget != null && closestTarget.layer == (int)GameManager.Layer.Enemy) {
+            targetPos = closestTarget.transform.position;
+        }
+
+        bool currThrow = GameManager.InputHandler.getThrow();
+
+        PlayerController plyCtrl = transform.parent.GetComponent<PlayerController>();
+        bool capLatched = targetLocked && prevThrow && currThrow;
+        plyCtrl.CapLatched(capLatched, targetPos);
+
+        if (currThrow) {
+            print("THROWING");
+            
+            if (!started && !targetLocked) {
                 timerStart = Time.time;
                 cap.SetActive(true);
+                started = true;
+                print("basic throw");
             }
-            started = true;
-            //StartCapThrow(null);
-            print("THROWING");
         }
-        if (started) {
+        if (started && !targetLocked) {
             PathUpdater();
             float remaining = Time.time - timerStart;
             remaining /= throwDuration;
@@ -100,6 +120,8 @@ public class CapThrow : MonoBehaviour {
                 cap.SetActive(false);
             }
         }
+
+        prevThrow = currThrow;
     }
 
     void PathUpdater() {
@@ -121,6 +143,11 @@ public class CapThrow : MonoBehaviour {
         started = true;
     }
 
+    bool targetLocked;
+    public void PauseCapThrow() {
+        started = false;
+        targetLocked = true;
+    }
 
     void OnDrawGizmos() {
         Gizmos.color = Color.red;

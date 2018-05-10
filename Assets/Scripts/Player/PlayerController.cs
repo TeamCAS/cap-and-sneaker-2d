@@ -30,6 +30,8 @@ public class PlayerController : MonoBehaviour {
     public float hitPushStrength = 1;
     [Header("Duration in seconds the player has no control when damaged")]
     public float damagedDuration = 1;
+    [Header("The speed of the player when pulled towards the latched cap")]
+    public float latchedCapSpeed = 1;
 
     Vector3 spawnPoint;
     Rigidbody2D rbody;
@@ -69,6 +71,7 @@ public class PlayerController : MonoBehaviour {
     float hitTimerStart;
     bool runAttackActive = false;
     FistStrike fistStrike;
+    bool capLatched;
 
 
 
@@ -98,10 +101,11 @@ public class PlayerController : MonoBehaviour {
     void Update() {
         grounded = groundCheck.isGrounded();
         
-        animations.UpdateParamaters(grounded, rbody.velocity, parachuteOpen, damageTaken, runAttackActive);
+        animations.UpdateParamaters(grounded, rbody.velocity, parachuteOpen, damageTaken, runAttackActive, capLatched);
     }
 
     void FixedUpdate() {
+        
 
         // Check if player has recovered
         if (damageTaken && Time.time - hitTimerStart >= damagedDuration) {
@@ -109,6 +113,8 @@ public class PlayerController : MonoBehaviour {
             GameManager.InputHandler.enableControls();
             GameManager.DataHandler.SetPlayerRecovered();
         }
+
+        if (capLatched) return;
 
         speed = rbody.velocity.magnitude;
         grounded = groundCheck.isGrounded();
@@ -499,6 +505,18 @@ public class PlayerController : MonoBehaviour {
 
     public void SetInteracting(bool state) {
         interacting = state;
+    }
+
+
+    public void CapLatched(bool val, Vector2 target) {
+        capLatched = val;
+        if (capLatched) {
+            rbody.gravityScale = 0;
+            rbody.velocity = new Vector2();
+            transform.position = Vector2.MoveTowards(transform.position, target, latchedCapSpeed);
+        } else {
+            rbody.gravityScale = gravityScale;
+        }
     }
 
     public bool isParachuteOpen() { return parachuteOpen; }

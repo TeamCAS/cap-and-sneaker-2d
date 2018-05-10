@@ -12,6 +12,7 @@ TagManager:
   - ThrownCap
   - OutOfBounds
   - PlayerFist
+  - PlayerKick
   layers:
   - Default
   - TransparentFX
@@ -26,7 +27,7 @@ TagManager:
   - Player
   - Collectible
   - Enemy
-  - 
+  - Targetable
   - 
   - 
   - 

@@ -27,13 +27,16 @@ public class AnimationHandler : MonoBehaviour {
         Vector2 velocity, 
         bool parachuteOpen, 
         bool playerHit,
-        bool runAttackActive) 
+        bool runAttackActive,
+        bool capKick) 
     {
 
         // Set the animation value, if true don't update other values
         // since the damage animation should take priority
         animator.SetBool("HitBack", playerHit);
         if (playerHit) return;
+
+        animator.SetBool("CapKick", capKick);
 
         float speed = velocity.magnitude / playerCtrl.maxRunSpeed;
         animator.SetFloat("Velocity", speed);

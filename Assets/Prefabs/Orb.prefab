@@ -24,6 +24,7 @@ GameObject:
   - component: {fileID: 114330625711934476}
   - component: {fileID: 58112269790862974}
   - component: {fileID: 50068139963218484}
+  - component: {fileID: 114629667473279520}
   m_Layer: 11
   m_Name: Orb
   m_TagString: Orb
@@ -38,7 +39,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1074664789150264}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -9.98, y: 7.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -51,7 +52,7 @@ Rigidbody2D:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1074664789150264}
-  m_BodyType: 0
+  m_BodyType: 1
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
@@ -103,6 +104,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 44ec2937191746f4581215f41c02502b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &114629667473279520
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1074664789150264}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f8622bc645be394ab580cab5fff71a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!212 &212027083060040780

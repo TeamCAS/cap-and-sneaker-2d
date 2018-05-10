@@ -509,6 +509,7 @@ public class GameManager : MonoBehaviour {
         Solid,
         Player,
         Collectible,
-        Enemy
+        Enemy,
+        Targetable
     }
 }
