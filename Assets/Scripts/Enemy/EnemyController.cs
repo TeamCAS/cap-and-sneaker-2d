@@ -7,13 +7,9 @@ public class EnemyController : MonoBehaviour {
     public float launchStrength = 1;
 
     EnemyGuardGround guard;
-    GameObject capCover;
 
     void Start() {
         guard = GetComponentInParent<EnemyGuardGround>();
-        foreach(Transform t in transform) {
-            if (t.name == "CapCover") capCover = t.gameObject;
-        }
     }
 
     enum Action { HitPlayer, HitByFist, HitByCapKick, None, Blocked }
@@ -55,10 +51,6 @@ public class EnemyController : MonoBehaviour {
             print("Enemy Should Die");
             vel = (transform.position - other.transform.position) * launchStrength;
             action = Action.HitByFist;
-        }
-        else if (other.CompareTag("ThrownCap")) {
-            other.transform.parent.GetComponent<CapThrow>().PauseCapThrow();
-            capCover.SetActive(true);
         }
     }
 
