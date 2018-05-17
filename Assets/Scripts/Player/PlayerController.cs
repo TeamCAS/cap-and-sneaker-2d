@@ -71,6 +71,7 @@ public class PlayerController : MonoBehaviour {
     float hitTimerStart;
     bool runAttackActive = false;
     FistStrike fistStrike;
+    FeetStrike feetStrike;
     bool capLatched;
 
 
@@ -94,7 +95,8 @@ public class PlayerController : MonoBehaviour {
         groundedSignal = GameObject.Find("GroundedSignal");
 
         foreach (Transform t in transform) {
-            if (t.name == "Fist") fistStrike = t.GetComponent<FistStrike>();
+            if (t.name == "FistStrike") fistStrike = t.GetComponent<FistStrike>();
+            if (t.name == "FeetStrike") feetStrike = t.GetComponent<FeetStrike>();
         }
     }
 
@@ -114,6 +116,7 @@ public class PlayerController : MonoBehaviour {
             GameManager.DataHandler.SetPlayerRecovered();
         }
 
+        feetStrike.SetActive(capLatched);
         if (capLatched) return;
 
         speed = rbody.velocity.magnitude;
@@ -511,9 +514,11 @@ public class PlayerController : MonoBehaviour {
     public void CapLatched(bool val, Vector2 target) {
         capLatched = val;
         if (capLatched) {
+            runAttackActive = false;
             rbody.gravityScale = 0;
             rbody.velocity = new Vector2();
             transform.position = Vector2.MoveTowards(transform.position, target, latchedCapSpeed);
+            transform.up = (target - (Vector2)transform.position).normalized * -1;
         } else {
             rbody.gravityScale = gravityScale;
         }
