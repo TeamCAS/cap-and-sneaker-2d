@@ -35,7 +35,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1901820623069186}
   m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: 72.2, y: 1.9, z: 0}
+  m_LocalPosition: {x: 26.22, y: 7.16, z: 0}
   m_LocalScale: {x: 15, y: 15, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -65,9 +65,11 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: -0.24, y: 0.19}
+    - - {x: -0.23260793, y: 0.15247859}
+      - {x: -0.24266289, y: 0.24591975}
       - {x: -0.24, y: -0.24}
-      - {x: 0.19, y: -0.24}
+      - {x: 0.2409933, y: -0.23976855}
+      - {x: 0.15345894, y: -0.22987562}
       - {x: 0.06729584, y: -0.21109419}
       - {x: -0.030390931, y: -0.15876256}
       - {x: -0.1070282, y: -0.09280824}
@@ -82,6 +84,7 @@ SpriteRenderer:
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -97,6 +100,7 @@ SpriteRenderer:
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 0
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
