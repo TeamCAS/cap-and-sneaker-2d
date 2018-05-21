@@ -26,6 +26,9 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/test/Enemy Test.unity
     guid: 031d9c9587c86484fa151715575e7544
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/test/Respawn.unity
     guid: 05fe79510637af4448a8823e263bf671
+  - enabled: 1
+    path: Assets/Scenes/HueHills.unity
+    guid: 0f57e9481e4200c4a98631eb52796873
