@@ -4,10 +4,21 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour {
 
+    [Header("Read Only")]
     public float speed;
+    public float surfaceSpeed;
+    public float speedAfter;
 
-    public float runMultiplier = 200;
-    public float maxRunSpeed = 40;
+
+    [Header("Max speed when on a flat horizontal surface")]
+    public float maxRunSpeed = 30;
+    [Header("Acceleration before binding to surface")]
+    public float runMultiplier = 30;
+    [Header("Bind to surface min speed")]
+    public float bindSpeed = 20;
+    [Header("Bind to surface min distance, used when player is not grounded")]
+    public float bindDistance = 1;
+
     public float runAttackMinSpeed = 36;
 
 
@@ -15,11 +26,9 @@ public class PlayerController : MonoBehaviour {
     public float parachuteDescentSpeed = 4.5f;
     public float parachuteTravelAcceleration = 1;
     public float parachuteTravelMaxSpeed = 20;
-    public float stickyStartSpeed = 5;
-    public float stickyScale = 30;
-    public float stickyDistance = 3;
-    public float gravityScale= 5;
     public float fallingRotationSpeed = 0.1f;
+    public float ascendMultiplier = 2;
+    public float descendMultiplier = 3;
 
     public float playerWidth = 1;
     public float playerHeight = 2.5f;
@@ -37,7 +46,6 @@ public class PlayerController : MonoBehaviour {
     Rigidbody2D rbody;
     GroundCheck groundCheck;
     bool canJump = false;
-    bool parachuteOpen;
     bool interacting = false;
 
     float rotationStartTime = -1;
@@ -73,6 +81,18 @@ public class PlayerController : MonoBehaviour {
     FistStrike fistStrike;
     FeetStrike feetStrike;
     bool capLatched;
+    public float orbDropVelocity = 1;
+
+    // Keeps the BTS off for short duration so that other forces
+    // can apply i.e. jump
+    float btsTimeOff = 0.1f;
+    float btsTimer;
+
+    PlayerJump pJump;
+    PlayerDamaged pDamaged;
+    PlayerFalling pFalling;
+    PlayerParachute pParachute;
+    PlayerBindToSurface pBts;
 
 
 
@@ -98,76 +118,103 @@ public class PlayerController : MonoBehaviour {
             if (t.name == "FistStrike") fistStrike = t.GetComponent<FistStrike>();
             if (t.name == "FeetStrike") feetStrike = t.GetComponent<FeetStrike>();
         }
+
+        pJump = new PlayerJump();
+        pDamaged = new PlayerDamaged(hitPushStrength, rbody, orbDropVelocity, damagedDuration);
+        pFalling = new PlayerFalling(rbody, transform, fallingRotationSpeed, ascendMultiplier, descendMultiplier);
+        pParachute = new PlayerParachute(rbody, parachuteDescentSpeed, capCtrl);
+        pBts = new PlayerBindToSurface(transform, 4, rbody, bindDistance);
     }
 
     void Update() {
         grounded = groundCheck.isGrounded();
+
+        animations.UpdateParamaters(
+            grounded,
+            rbody.velocity,
+            pParachute.isOpen(), 
+            pDamaged.isDamaged(), 
+            runAttackActive, 
+            capLatched
+        );
+    }
+
+    float GetSurfaceSpeed() {
+        if (rbody.velocity.magnitude == 0) return 0;
+
+        float result = 0;
+
+        float angle = Vector2.SignedAngle(transform.up, rbody.velocity);
+        if (angle > 90) angle -= 90;
+        else if (angle < -90) angle += 90;
+        else if (angle < 0) angle = -90 - angle;
+        else if (angle > 0) angle = 90 - angle;
+        else return 0;
+
+        angle *= Mathf.Deg2Rad;
+        result = Mathf.Cos(angle) * rbody.velocity.magnitude;
         
-        animations.UpdateParamaters(grounded, rbody.velocity, parachuteOpen, damageTaken, runAttackActive, capLatched);
+        return result;
     }
 
     void FixedUpdate() {
-        
-
-        // Check if player has recovered
-        if (damageTaken && Time.time - hitTimerStart >= damagedDuration) {
-            damageTaken = false;
-            GameManager.InputHandler.enableControls();
-            GameManager.DataHandler.SetPlayerRecovered();
-        }
-
-        feetStrike.SetActive(capLatched);
-        if (capLatched) return;
-
         speed = rbody.velocity.magnitude;
         grounded = groundCheck.isGrounded();
+        surfaceSpeed = GetSurfaceSpeed();
 
-        // Activate player run attack if traveling fast enough.
-        runAttackActive = false;
-        if (grounded && speed >= runAttackMinSpeed) {
-            runAttackActive = true;
-            print("RUN ATTACK ACTIVATED");
+        // If player is damaged, no need to do anything, player has no control
+        if (pDamaged.isDamaged()) return;
+
+        // return if player is interacting
+        if (interacting) return;
+
+        if (surfaceSpeed > bindSpeed && Time.time - btsTimer > btsTimeOff) {
+            pBts.BindToSurface(surfaceSpeed);
+            Debug.Log("Binding to surface");
         }
+        else {
+            pBts.AdjustToSurface();
+            Debug.Log("Adjusting to surface");
+        }
+
+        if (grounded) {
+
+            if (speed == 0) pBts.SetDistanceToSurface();
+
+            // Activate player run attack if traveling fast enough.
+            runAttackActive = false;
+            if (speed >= runAttackMinSpeed) runAttackActive = true;
+
+            bool jumped = pJump.Jump(rbody, jumpStrength);
+            if (jumped) btsTimer = Time.time;
+
+            pFalling.setGrounded();
+
+        }
+        else {
+
+            pFalling.RotateToUpRight();
+            pFalling.MultiplyGravity();
+
+        }
+
+        groundedSignal.SetActive(!grounded);
+
         fistStrike.SetActive(runAttackActive);
+        feetStrike.SetActive(capLatched);
+        if (capLatched) return;
 
         bool leftSolid = groundCheck.solidToLeft();
         bool rightSolid = groundCheck.solidToRight();
         if (leftSolid && rbody.velocity.x < 0 || rightSolid && rbody.velocity.x > 0) {
             rbody.velocity = new Vector2(0, rbody.velocity.y);
         }
-
-        groundedSignal.SetActive(!grounded);
-        rbody.gravityScale = 0;
-
-        // return if player is interacting
-        if (interacting) return;
-
-        if (grounded) {
-            Vector3 posDIff = RotateToSurfaceNormal();
-            if (speed > 20) {
-                transform.position += posDIff;
-            } else {
-                rbody.gravityScale = gravityScale;
-            }
-            rotationStartTime = -1;
-        } else {
-            rbody.gravityScale = gravityScale;
-            InterpolateRotation();
-        }
         
         MoveHorizontal();
-        Jump();
-        ToggleParachute();
+        pParachute.Toggle(grounded);
 
+        speedAfter = rbody.velocity.magnitude;
         prevGrounded = grounded;
-    }
-
-    void InterpolateRotation() {
-        rotationStartTime = rotationStartTime == -1 ? Time.time : rotationStartTime;
-        Quaternion current = transform.rotation;
-        Quaternion dest = Quaternion.Euler(0, 0, 0);
-        float t = (Time.time - rotationStartTime) * fallingRotationSpeed;
-        transform.rotation = Quaternion.Slerp(current, dest, t);
     }
 
     void UndoSolidPassThrough() {
@@ -359,12 +406,13 @@ public class PlayerController : MonoBehaviour {
     // Applies horizontal force to the rigidbody based on the horizontal input
     void MoveHorizontal() {
         float hInput = GameManager.InputHandler.getHorizontal();
+        float speed = rbody.velocity.magnitude;
         // Apply force to the rigidbody while the player is on the ground
         if (hInput != 0 
-            && rbody.velocity.magnitude < maxRunSpeed
+            && speed <= maxRunSpeed
             && grounded) 
         {
-            rbody.AddRelativeForce(new Vector2(runMultiplier * hInput, 0));
+             rbody.AddRelativeForce(new Vector2(runMultiplier * hInput, 0));
         }
         // Apply force when the player is airborne
         else if (hInput != 0
@@ -374,143 +422,19 @@ public class PlayerController : MonoBehaviour {
             rbody.AddRelativeForce(new Vector2(parachuteTravelAcceleration * hInput, 0));
         }
     }
-    
-    // Applies vertical forces to the rigidbody based on whether jump input
-    // has been detected and if the player is on the ground
-    void Jump() {
-        bool jumpPressed = GameManager.InputHandler.jumpPressed();
-
-        // If input is not 1, the player released the button, they can jump
-        if (!jumpPressed) canJump = true;
-
-        // Player can jump as long as they are grounded and weren't holding
-        // down jump i.e. canJump is true
-        if (jumpPressed && grounded && canJump) {
-            rbody.AddRelativeForce(new Vector2(0, jumpStrength));
-            canJump = false;
-        }
-    }
-
-    // Toggle whether the parachute is open or not
-    void ToggleParachute() {
-        bool jumpPressed = GameManager.InputHandler.jumpPressed();
-        bool isVelocityDown = rbody.velocity.y < 0;
-        bool playerFalling = !grounded;
-        bool insideWindChannel = capCtrl.isInsideWind();
-        //playerFalling = playerFalling && isVelocityDown;
-
-        if (playerFalling 
-            && jumpPressed
-            && (isVelocityDown || insideWindChannel)
-            ) {
-                parachuteOpen = true;
-                rbody.AddRelativeForce(new Vector3(0, 9.8f * parachuteDescentSpeed));
-        } else {
-            parachuteOpen = false;
-        }
-    }
-    
 
     void Respawn() {
         transform.position.Set(spawnPoint.x, spawnPoint.y, spawnPoint.z);
     }
-
-    bool damageTaken = false;
+    
     public void TakeDamage(Vector3 hitPoint) {
-        print("Player Hit");
-        // Only take damage once recovered
-        if (damageTaken) return;
-        hitTimerStart = Time.time;
-        damageTaken = true;
-        GameManager.DataHandler.SetPlayerHit();
-        GameManager.SoundHandler.StartPlayerHitSFX();
-
-        // Disable Controls
-        GameManager.InputHandler.disableControls();
-
-        // If no orbs then player faints
-        if (GameManager.DataHandler.getOrbCount() == 0) {
-            print("Player should faint");
-            GameManager.DataHandler.SetPlayerDead();
-        }
-
-        // Else player loses orbs
-        else {
-            print("Player should lose orbs");
-            DropOrbs();
-            rbody.velocity = new Vector2();
-
-            // Get right and left points based on characters location
-            // in world space
-            Vector3 trueRight = transform.right + transform.position;
-            Vector3 trueLeft = -1 * transform.right + transform.position;
-
-            // Test which side the player was hit from, left or right
-            float rightDist = Vector3.Distance(trueRight, hitPoint);
-            float leftDist = Vector3.Distance(trueLeft, hitPoint);
-
-            if (rightDist < leftDist) {
-                // Player was hit from the player gameobjects right
-                Vector3 hitVector = transform.right * -1;
-                hitVector += new Vector3(0, 1, 0);
-                hitVector.Normalize();
-                hitVector *= hitPushStrength;
-                rbody.AddForce(hitVector);
-            }
-            else {
-                // Player was hit from the player gameobjects left
-                Vector3 hitVector = transform.right;
-                hitVector += new Vector3(0, 1, 0);
-                hitVector.Normalize();
-                hitVector *= hitPushStrength;
-                rbody.AddForce(hitVector);
-            }
-        }
-
-        // Update animation parameters
-
-        // Start recovery time
-
+        pDamaged.TakeDamage(hitPoint);
     }
-
-    public float orbDropVelocity = 1;
-    void DropOrbs() {
-        float orbCount = GameManager.DataHandler.getOrbCount();
-        GameObject orbClone;
-        if (orbCount >= 1) {
-            orbClone = GameManager.ObjectCreator.createOrb(transform.position, new Quaternion());
-            Vector2 vel = new Vector2(0, 1).normalized * orbDropVelocity;
-            orbClone.GetComponent<Rigidbody2D>().velocity = vel;
-        }
-        if (orbCount >= 2) {
-            orbClone = GameManager.ObjectCreator.createOrb(transform.position, new Quaternion());
-            Vector2 vel = new Vector2(1, 1).normalized * orbDropVelocity;
-            orbClone.GetComponent<Rigidbody2D>().velocity = vel;
-        }
-        if (orbCount >= 3) {
-            orbClone = GameManager.ObjectCreator.createOrb(transform.position, new Quaternion());
-            Vector2 vel = new Vector2(-1, 1).normalized * orbDropVelocity;
-            orbClone.GetComponent<Rigidbody2D>().velocity = vel;
-        }
-        if (orbCount >= 4) {
-            orbClone = GameManager.ObjectCreator.createOrb(transform.position, new Quaternion());
-            Vector2 vel = new Vector2(0.5f, 1).normalized * orbDropVelocity;
-            orbClone.GetComponent<Rigidbody2D>().velocity = vel;
-        }
-        if (orbCount >= 5) {
-            orbClone = GameManager.ObjectCreator.createOrb(transform.position, new Quaternion());
-            Vector2 vel = new Vector2(-0.5f, 1).normalized * orbDropVelocity;
-            orbClone.GetComponent<Rigidbody2D>().velocity = vel;
-        }
-
-        GameManager.DataHandler.zeroOrbCount();
-    }
-
+        
     public void SetInteracting(bool state) {
         interacting = state;
     }
-
-
+    
     public void CapLatched(bool val, Vector2 target) {
         capLatched = val;
         if (capLatched) {
@@ -520,11 +444,9 @@ public class PlayerController : MonoBehaviour {
             transform.position = Vector2.MoveTowards(transform.position, target, latchedCapSpeed);
             transform.up = (target - (Vector2)transform.position).normalized * -1;
         } else {
-            rbody.gravityScale = gravityScale;
+            //rbody.gravityScale = gravityScale;
         }
     }
-
-    public bool isParachuteOpen() { return parachuteOpen; }
-
+   
     public bool isGrounded() { return groundCheck.isGrounded(); }
 }

@@ -716,7 +716,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1943241458986378}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 6.95, y: -0.23, z: 0}
+  m_LocalPosition: {x: -1266, y: 19.7, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4121536480979326}
@@ -877,7 +877,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDrag: 1
   m_AngularDrag: 0.05
-  m_GravityScale: 0
+  m_GravityScale: 1
   m_Material: {fileID: 0}
   m_Interpolate: 0
   m_SleepingMode: 1
@@ -1088,18 +1088,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 0
-  runMultiplier: 50
-  maxRunSpeed: 40
-  runAttackMinSpeed: 30
+  speedAfter: 0
+  maxRunSpeed: 30
+  runMultiplier: 35
+  runBindMultiplier: 30
+  bindSpeed: 20
+  runAttackMinSpeed: 29
   jumpStrength: 1500
   parachuteDescentSpeed: 4.5
   parachuteTravelAcceleration: 20
   parachuteTravelMaxSpeed: 20
-  stickyStartSpeed: 5
-  stickyScale: 10
-  stickyDistance: 4.5
-  gravityScale: 5
   fallingRotationSpeed: 5
+  ascendMultiplier: 4
+  descendMultiplier: 8
   playerWidth: 1
   playerHeight: 2.5
   leftCheckDist: 0.1

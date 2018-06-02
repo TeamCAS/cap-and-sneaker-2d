@@ -30,7 +30,7 @@ public class GroundCheck : MonoBehaviour {
             ? (Vector3)hit.point
             : Vector3.right * -1 * horizontalDistance + transform.position;
 
-        Debug.DrawLine( transform.position, dest, Color.green, 0, false);
+        //Debug.DrawLine( transform.position, dest, Color.green, 0, false);
 
         return hit.collider != null;
     }
@@ -46,7 +46,7 @@ public class GroundCheck : MonoBehaviour {
             ? (Vector3)hit.point
             : Vector3.right * horizontalDistance + transform.position;
 
-        Debug.DrawLine( transform.position, dest, Color.red, 0, false);
+        //Debug.DrawLine( transform.position, dest, Color.red, 0, false);
 
         return hit.collider != null;
     }
@@ -63,7 +63,7 @@ public class GroundCheck : MonoBehaviour {
             groundCheckDistance,
             1 << LayerMask.NameToLayer("Solid"));
 
-        if (true) {
+        if (false) {
             Vector3 src, dest;
 
             src = leftCheck.position;
