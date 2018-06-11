@@ -25,6 +25,9 @@ public class GameManager : MonoBehaviour {
     [Header("How long do transitions last in milliseconds?")]
     public float transitionDuration = 2000;
 
+    [Header("Auto controller inputs")]
+    public float autoHorizontal = 0;
+    
 
 
     GameObject orbObject;
@@ -82,7 +85,8 @@ public class GameManager : MonoBehaviour {
     }
 
     void FixedUpdate() {
-        InputHandler.setHorizontal(Input.GetAxis("Horizontal"));
+        if (autoHorizontal != 0) InputHandler.setHorizontal(autoHorizontal);
+        else InputHandler.setHorizontal(Input.GetAxis("Horizontal"));
         InputHandler.setJump(Input.GetAxis("Jump"));
         InputHandler.setThrow(Input.GetAxis("Fire1"));
 

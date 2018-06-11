@@ -6,6 +6,14 @@ public class PlayerJump {
 
     bool canJump;
 
+    Rigidbody2D rbody;
+    float jumpStrength;
+
+    public PlayerJump (Rigidbody2D rbody, float jumpStrength) {
+        this.rbody = rbody;
+        this.jumpStrength = jumpStrength;
+    }
+
     // Applies vertical forces to the rigidbody based on whether jump input
     // has been detected and if the player is on the ground
     public bool Jump(Rigidbody2D rbody, float jumpStrength) {

@@ -7,26 +7,14 @@ public class PlayerFalling {
     float startTime = -1;
 
     Transform transform;
-    float rotateSpeed;
     Rigidbody2D rbody;
-    float ascendMultiplier;
-    float descendMultiplier;
 
-    public PlayerFalling (
-        Rigidbody2D rbody, 
-        Transform transform, 
-        float rotateSpeed, 
-        float ascendMultiplier, 
-        float descendMultiplier) 
-    {
+    public PlayerFalling (Rigidbody2D rbody, Transform transform) {
         this.transform = transform;
-        this.rotateSpeed = rotateSpeed;
         this.rbody = rbody;
-        this.ascendMultiplier = ascendMultiplier;
-        this.descendMultiplier = descendMultiplier;
     }
 
-    public void RotateToUpRight () {
+    public void RotateToUpRight (float rotateSpeed) {
         Quaternion current = transform.rotation;
         Quaternion dest = Quaternion.Euler(0, 0, 0);
         startTime = startTime == -1 ? Time.time : startTime;
@@ -34,11 +22,11 @@ public class PlayerFalling {
         transform.rotation = Quaternion.Slerp(current, dest, t);
     }
 
-    public void setGrounded() {
+    public void SetGrounded() {
         startTime = -1;
     }
 
-    public void MultiplyGravity() {
+    public void MultiplyGravity(float descendMultiplier, float ascendMultiplier) {
         float force = 0;
         if (rbody.velocity.y < 0) force = Physics2D.gravity.y * (descendMultiplier - 1);
         else if (rbody.velocity.y > 0) force = Physics2D.gravity.y * (ascendMultiplier - 1);
